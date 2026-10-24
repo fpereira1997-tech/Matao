@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Matão OS">
+<title>Matão OS - Cronograma Veterinário</title>
+<style>
+:root{
+  --bg:#000; --glass:rgba(30,30,30,.65); --glass-b:rgba(255,255,255,.1);
+  --text:#F5F5F7; --muted:rgba(255,255,255,.55);
+  --accent:#0A84FF; --danger:#FF453A; --success:#32D74B; --warning:#FFD60A;
+  --c133:#BF5AF2; --c134:#FF9F0A;
+}
+[data-ic]{display:inline-flex;align-items:center;justify-content:center}
+.ic{width:1em;height:1em;flex:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);overflow:hidden;position:fixed;inset:0;width:100%;height:100%}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10px}
+
+.wallpaper{position:fixed;inset:0;z-index:0;background-color:#2a1b12;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.wallpaper svg.bg-scene{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.wallpaper .ext-bg{position:absolute;inset:0;background-image:url('Gemini_Generated_Image_i2a8iqi2a8iqi2a8.jfif'),url('fundo.jpg'),url('background.jpg');background-size:cover;background-position:center center;background-repeat:no-repeat;z-index:1}
+.wallpaper::after{content:"";position:absolute;inset:0;z-index:2;background:radial-gradient(circle at 50% 48%,rgba(15,10,8,.18) 0%,rgba(15,10,8,.52) 100%),linear-gradient(180deg,rgba(15,10,8,.48) 0%,rgba(15,10,8,.22) 48%,rgba(15,10,8,.62) 100%);pointer-events:none}
+.ambient{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15;animation:float 20s infinite ease-in-out alternate;z-index:1;pointer-events:none}
+.l1{width:400px;height:400px;background:#0A84FF;top:-100px;left:-100px}
+.l2{width:500px;height:500px;background:#C084FC;bottom:-150px;right:-100px;animation-delay:-5s}
+@keyframes float{0%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}100%{transform:translate(0,0)}}
+
+/* barra de status */
+#status{position:absolute;top:0;left:0;right:0;height:46px;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;font-weight:600;background:linear-gradient(rgba(0,0,0,.65),transparent)}
+#status .pill{display:inline-flex;gap:6px;align-items:center;background:rgba(20,20,22,.55);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:99px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;cursor:default}
+#status button.pill{cursor:pointer;transition:.2s}
+#status button.pill:hover{background:rgba(40,40,45,.75)}
+#status .mid{position:absolute;left:50%;transform:translateX(-50%);text-shadow:0 1px 4px rgba(0,0,0,.85)}
+
+/* home */
+#home{position:absolute;top:46px;left:0;right:0;bottom:110px;overflow-y:auto;padding:14px 40px 30px;z-index:10;display:flex;flex-direction:column;gap:34px}
+.group-title{font-size:13px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1px;padding:6px 12px;background:rgba(20,20,22,.48);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);border-radius:10px;margin-bottom:16px;display:inline-block;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.grid{display:flex;flex-wrap:wrap;gap:30px 34px}
+.tile{position:relative;width:84px;display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;color:inherit}
+.tile .label{margin-top:8px;font-size:12px;font-weight:600;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7);line-height:1.2}
+.tile .sub{font-size:10.5px;color:#E5E5EA;text-shadow:0 1px 3px rgba(0,0,0,.9);margin-top:1px;font-weight:500}
+.icon{width:68px;height:68px;border-radius:22.5%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:34px;position:relative;overflow:hidden;box-shadow:0 8px 15px rgba(0,0,0,.4);transition:transform .2s cubic-bezier(.25,.1,.25,1);border:1px solid rgba(255,255,255,.06)}
+.icon::after{content:"";position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(rgba(255,255,255,.18),transparent);pointer-events:none}
+.tile:hover .icon{transform:scale(1.06)}
+.tile:active .icon{transform:scale(.94);filter:brightness(.8)}
+.g-blue{background:linear-gradient(135deg,#0A84FF,#0056B3)}
+.g-green{background:linear-gradient(135deg,#32D74B,#208A2E)}
+.g-orange{background:linear-gradient(135deg,#FF9F0A,#B8730A)}
+.g-purple{background:linear-gradient(135deg,#BF5AF2,#8A3BB3)}
+.g-red{background:linear-gradient(135deg,#FF453A,#C92A2A)}
+.g-gray{background:linear-gradient(135deg,#8E8E93,#48484A)}
+.g-indigo{background:linear-gradient(135deg,#5E5CE6,#3634A3)}
+.g-teal{background:linear-gradient(135deg,#64D2FF,#0A84FF)}
+
+/* pasta */
+.folder{background:rgba(255,255,255,.2);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.18)}
+.folder::after{display:none}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;width:100%;height:100%}
+.mini i{border-radius:5px;background:rgba(255,255,255,.14);display:block}
+.mini i.on{background:rgba(255,255,255,.45)}
+.mini i.done{background:var(--success)}
+.mini i.today{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.mini i.sim{background:var(--warning)}
+.mini i.prova{background:var(--danger)}
+.badge{position:absolute;top:-6px;right:-2px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--danger);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:5}
+.badge.ok{background:var(--success);color:#000}
+.tile.now .icon{box-shadow:0 0 0 2px var(--accent),0 8px 15px rgba(0,0,0,.4)}
+
+/* dock */
+.dock{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);padding:12px 18px;background:var(--glass);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);border:1px solid var(--glass-b);border-radius:36px;display:flex;gap:16px;box-shadow:0 10px 40px rgba(0,0,0,.5);z-index:40}
+.dock .tile{width:62px}
+.dock .icon{width:56px;height:56px;font-size:28px}
+.dock .tile .tip{position:absolute;top:-42px;background:rgba(40,40,45,.9);backdrop-filter:blur(15px);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;white-space:nowrap;pointer-events:none;opacity:0;transform:translateY(8px);transition:.2s;border:1px solid var(--glass-b)}
+.dock .tile:hover .tip{opacity:1;transform:none}
+.dock .tile.active::after{content:"";position:absolute;bottom:-8px;width:5px;height:5px;border-radius:50%;background:#fff}
+
+/* janela */
+.window{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);width:min(900px,96vw);height:min(660px,84vh);background:rgba(28,28,30,.92);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.15);border-radius:18px;box-shadow:0 30px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.16,1,.3,1);z-index:50;display:flex;flex-direction:column;overflow:hidden}
+.window.active{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.window.full{width:100vw!important;height:100vh!important;top:0!important;left:0!important;transform:none!important;border-radius:0!important;border:0}
+.whead{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2);position:relative;min-height:46px}
+.wl{display:flex;gap:8px;align-items:center;z-index:2}
+.abtn{width:14px;height:14px;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;border:0;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}
+.abtn i{opacity:0;font-size:9px;transition:.2s}
+.whead:hover .abtn i{opacity:1}
+.b-close{background:#FF5F56;color:#4A0002}.b-exp{background:#27C93F;color:#004D09}
+.wtitle{position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;max-width:60%}
+.wtitle b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wtitle small{font-size:11px;color:var(--muted)}
+.wbody{flex:1;overflow-y:auto;padding:20px;background:rgba(0,0,0,.1)}
+
+/* conteúdo */
+.sum{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sum p{flex:1;min-width:220px;color:#D1D1D6;font-size:13px;line-height:1.5}
+.chip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.1);border:1px solid var(--glass-b)}
+.day{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:.2s}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.day.sim{background:rgba(255,214,10,.08);border-color:rgba(255,214,10,.3)}
+.day.prova{background:rgba(255,69,58,.1);border-color:rgba(255,69,58,.35)}
+.day.done .items{opacity:.5}
+.dh{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.chk{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;flex:none;transition:.2s;color:transparent;font-size:14px}
+.day.done .chk{background:var(--success);border-color:var(--success);color:#000}
+.dh .d{font-weight:700;font-size:14px}.dh .d::first-letter{text-transform:uppercase}
+.dh .hrs{margin-left:auto;font-size:12px;color:var(--muted)}
+.hoje{font-size:10px;font-weight:700;background:var(--accent);padding:2px 8px;border-radius:99px}
+.item{padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,.07)}
+.tags{display:flex;gap:8px;align-items:center;margin-bottom:5px;flex-wrap:wrap}
+.tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;background:var(--accent)}
+.tag.c133{background:var(--c133)}.tag.c134{background:var(--c134);color:#000}
+.subj{font-weight:600;font-size:13px}
+.txt{font-size:13px;color:#D1D1D6;line-height:1.55;margin-bottom:8px}
+.vids{display:flex;flex-wrap:wrap;gap:6px}
+.vbtn{display:inline-flex;gap:7px;align-items:center;background:rgba(10,132,255,.14);border:1px solid rgba(10,132,255,.35);color:#fff;padding:7px 11px;border-radius:10px;font-size:12px;cursor:pointer;text-align:left;transition:.2s}
+.vbtn:hover{background:rgba(10,132,255,.28)}
+.vbtn i{color:#64B5FF;font-size:15px}
+.sbtn{display:inline-flex;gap:6px;align-items:center;border:1px dashed rgba(255,255,255,.25);color:var(--muted);padding:7px 11px;border-radius:10px;font-size:12px;text-decoration:none}
+.sbtn:hover{color:#fff;border-color:#fff}
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-size:13px}
+
+.box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:16px;margin-bottom:14px;font-size:13px;line-height:1.6;color:#D1D1D6}
+.box h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px}
+.box.warn{background:rgba(255,159,10,.08);border-color:rgba(255,159,10,.35)}
+.box.warn h3{color:var(--c134)}
+.box ul{padding-left:18px}.box li{margin-bottom:6px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid rgba(255,255,255,.1);padding:8px 6px;text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+
+/* popup de vídeo */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:10000;display:none;align-items:center;justify-content:center;padding:14px;opacity:0;transition:opacity .2s}
+.overlay.active{display:flex;opacity:1}
+.vmodal{background:rgba(30,30,30,.96);backdrop-filter:blur(20px);border-radius:16px;border:1px solid var(--glass-b);width:min(920px,100%);max-height:96vh;overflow:auto;box-shadow:0 30px 70px rgba(0,0,0,.6);transform:scale(.96);transition:.2s cubic-bezier(.16,1,.3,1)}
+.overlay.active .vmodal{transform:scale(1)}
+.vhead{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--glass-b)}
+.vhead b{flex:1;font-size:14px;font-weight:600}
+.vframe{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden}
+.vframe iframe,.vframe #ytp{position:absolute;inset:0;width:100%;height:100%;border:0}
+.fb{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:#000 center/cover no-repeat}
+.fb::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+.fb>*{position:relative}
+.fb .big{width:76px;height:76px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;font-size:38px;color:#fff;border:0;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:.2s}
+.fb .big:hover{transform:scale(1.07)}
+.fb p{font-size:13px;color:#E5E5EA;max-width:520px;line-height:1.5}
+.fb .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.vlist{padding:10px 16px 14px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--glass-b)}
+.vlist .vbtn.cur{background:var(--accent);border-color:var(--accent)}
+.vlist .vbtn.cur i{color:#fff}
+.vfoot{padding:10px 16px 14px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:0;color:#fff;text-decoration:none;background:rgba(255,255,255,.14);transition:.2s}
+.btn:hover{filter:brightness(1.15)}
+.btn.primary{background:var(--accent)}
+.btn.red{background:var(--danger)}
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+.xbtn{width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px}
+
+#alertOv{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:15000;display:none;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .2s}
+#alertOv.active{display:flex;opacity:1}
+.alertbox{width:min(300px,100%);background:rgba(44,44,46,.97);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-radius:16px;text-align:center;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);transform:scale(1.08);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+#alertOv.active .alertbox{transform:scale(1)}
+.alertbody{padding:22px 18px 18px}
+.alertico{width:46px;height:46px;border-radius:12px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;background:linear-gradient(135deg,#5E5CE6,#3634A3)}
+.alerttitle{font-size:17px;font-weight:600;margin-bottom:6px}
+.alertmsg{font-size:13px;line-height:1.45;color:#E5E5EA}
+.alertbtns{display:flex;border-top:1px solid rgba(255,255,255,.15)}
+.alertbtns button{flex:1;padding:13px 8px;background:transparent;border:0;color:var(--accent);font-size:17px;cursor:pointer}
+.alertbtns button:hover{background:rgba(255,255,255,.07)}
+.alertbtns button+button{border-left:1px solid rgba(255,255,255,.15);font-weight:600}
+#toast{position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:rgba(40,40,40,.92);backdrop-filter:blur(10px);border:1px solid var(--glass-b);border-radius:30px;padding:11px 22px;font-size:13.5px;font-weight:500;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:20000;transition:top .4s cubic-bezier(.16,1,.3,1);max-width:92vw}
+#toast.show{top:48px}
+
+/* ---------- Estilos do App Questões ---------- */
+.q-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.q-field{display:flex;flex-direction:column;gap:6px}
+.q-field label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.q-select{appearance:none;-webkit-appearance:none;width:100%;background:rgba(255,255,255,.08) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23F5F5F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 12px center;border:1px solid rgba(255,255,255,.16);color:var(--text);padding:11px 36px 11px 13px;border-radius:12px;font-size:13.5px;font-weight:500;cursor:pointer;outline:none;transition:.2s}
+.q-select:hover,.q-select:focus{border-color:var(--accent);background-color:rgba(255,255,255,.12)}
+.q-select option{background:#1C1C1E;color:var(--text)}
+.q-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.q-toolbar-left,.q-toolbar-right{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.q-pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.q-pill{padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.q-pill:hover{background:rgba(255,255,255,.12)}
+.q-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.q-pill small{opacity:.75;font-weight:500}
+.q-syllabus{background:rgba(10,132,255,.08);border:1px solid rgba(10,132,255,.28);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.q-syllabus h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#64B5FF;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.q-syl-item{padding:8px 0;border-top:1px solid rgba(255,255,255,.07);font-size:13px;line-height:1.5;color:#E5E5EA}
+.q-syl-item:first-of-type{border-top:0;padding-top:0}
+.q-syl-meta{display:flex;gap:8px;align-items:center;margin-bottom:3px;flex-wrap:wrap}
+.q-syl-date{font-size:11px;color:var(--muted);font-weight:600}
+.q-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:14px}
+.q-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-enun{font-size:14px;line-height:1.6;color:var(--text);margin-bottom:14px;white-space:pre-line}
+.q-opts{display:flex;flex-direction:column;gap:8px}
+.q-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:var(--text);font-size:13px;line-height:1.45;cursor:pointer;text-align:left;transition:.2s}
+.q-opt:hover{background:rgba(255,255,255,.08)}
+.q-opt .let{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.q-opt.correct{border-color:var(--success);background:rgba(50,215,75,.14)}
+.q-opt.correct .let{background:var(--success);color:#000}
+.q-opt.wrong{border-color:var(--danger);background:rgba(255,69,58,.14)}
+.q-opt.wrong .let{background:var(--danger);color:#fff}
+.q-comm{margin-top:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,.05);border-left:3px solid var(--accent);font-size:12.5px;line-height:1.55;color:#D1D1D6;display:none}
+.q-comm.show{display:block}
+.q-empty-box{background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.18);border-radius:14px;padding:26px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+.q-empty-box b{color:var(--text);display:block;font-size:14px;margin-bottom:6px}
+.q-code{text-align:left;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11.5px;color:#A5A3FF;overflow-x:auto;margin-top:12px;line-height:1.45}
+
+@media(max-width:700px){
+  #home{padding:12px 18px 30px}
+  .grid{gap:24px 18px}
+  .window{width:100vw;height:calc(100vh - 0px);top:0;left:0;transform:scale(.96);border-radius:0;border:0}
+  .window.active{transform:none}
+  .dock{gap:10px;padding:10px 12px;max-width:96vw}
+  .dock .tile{width:56px}.dock .icon{width:50px;height:50px;font-size:24px}
+  #status .hide-m{display:none}
+  .q-controls{grid-template-columns:1fr}
+}
+.icon .ic{width:1em;height:1em}
+.icon.week{background:linear-gradient(135deg,#FFB020,#F08C00)}
+.tile.complete .icon.week{background:linear-gradient(135deg,#32D74B,#208A2E)}
+.num{font-size:38px;font-weight:700;color:#fff;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.badge.ok{background:#fff;color:#208A2E}
+.rv{margin:0 14px 12px;border:1px solid rgba(94,92,230,.45);background:rgba(94,92,230,.12);border-radius:12px;padding:10px 12px}
+.rvh{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#A5A3FF;margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.rvrow{display:flex;gap:10px;align-items:flex-start;padding:7px 4px;border-top:1px solid rgba(255,255,255,.07);cursor:pointer;border-radius:8px}
+.rvrow:first-of-type{border-top:0}
+.rvrow:hover{background:rgba(255,255,255,.05)}
+.rvrow .chk{width:20px;height:20px;font-size:12px;margin-top:1px}
+.rvrow.done .chk{background:var(--success);border-color:var(--success);color:#000}
+.rvrow.done .rvt{opacity:.45;text-decoration:line-through}
+.rvn{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;background:#5E5CE6;color:#fff;flex:none;margin-top:2px}
+.rvt{font-size:12.5px;color:#E5E5EA;line-height:1.45;flex:1}
+.rvd{font-size:11px;color:var(--muted);display:block}
+.rvgroup{margin-bottom:14px}
+.rvgroup h4{font-size:12.5px;margin:0 0 6px;display:flex;gap:8px;align-items:center}
+.rvgroup h4 small{color:var(--muted);font-weight:500}
+.rvgroup.late h4{color:var(--danger)}
+.rvgroup.now h4{color:#64B5FF}
+.rvbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:6px 10px}
+.badge .ic{width:12px;height:12px}
+</style>
+</head>
+<body>
+<div class="wallpaper" id="wp">
+  <!-- Ilustração embutida e centralizada automaticamente (funciona 100% sem precisar selecionar arquivo) -->
+  <svg class="bg-scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="wallB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F6DEC5"/><stop offset="100%" stop-color="#E7C6A5"/></linearGradient>
+      <linearGradient id="wallL" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C88755"/><stop offset="100%" stop-color="#D99B6A"/></linearGradient>
+      <linearGradient id="wallR" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#E5B78E"/><stop offset="100%" stop-color="#D49E72"/></linearGradient>
+      <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F5D7B8"/><stop offset="100%" stop-color="#E8C29B"/></linearGradient>
+      <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D4F1F9"/><stop offset="100%" stop-color="#F3FAFD"/></linearGradient>
+      <linearGradient id="tableG" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#9BA9B2"/><stop offset="50%" stop-color="#CFD8DC"/><stop offset="100%" stop-color="#8998A1"/></linearGradient>
+    </defs>
+    <!-- Paredes e teto -->
+    <rect width="1600" height="900" fill="url(#wallB)"/>
+    <polygon points="0,0 1600,0 1270,58 370,58" fill="#EED2B7" stroke="#5A3825" stroke-width="2.5"/>
+    <polygon points="0,0 370,58 370,580 0,710" fill="url(#wallL)" stroke="#5A3825" stroke-width="3"/>
+    <!-- Linhas de madeira da parede esquerda -->
+    <g stroke="#8F5731" stroke-width="2" opacity="0.55">
+      <line x1="55" y1="9" x2="55" y2="690"/><line x1="110" y1="18" x2="110" y2="670"/>
+      <line x1="165" y1="26" x2="165" y2="650"/><line x1="220" y1="35" x2="220" y2="630"/>
+      <line x1="275" y1="43" x2="275" y2="612"/><line x1="330" y1="52" x2="330" y2="594"/>
+    </g>
+    <polygon points="1270,58 1600,0 1600,720 1270,580" fill="url(#wallR)" stroke="#5A3825" stroke-width="3"/>
+    <!-- Piso e rodapé -->
+    <polygon points="0,710 370,580 1270,580 1600,720 1600,900 0,900" fill="url(#floorG)" stroke="#5A3825" stroke-width="3"/>
+    <line x1="370" y1="566" x2="1270" y2="566" stroke="#8C5836" stroke-width="8"/>
+
+    <!-- Janela central ao fundo -->
+    <g transform="translate(670,115)">
+      <rect x="0" y="0" width="380" height="290" rx="6" fill="#E5C09E" stroke="#5A3825" stroke-width="3.5"/>
+      <rect x="18" y="24" width="344" height="246" fill="url(#skyG)" stroke="#5A3825" stroke-width="2.5"/>
+      <!-- Arbustos na janela -->
+      <path d="M18,225 Q75,180 140,220 Q215,175 290,215 Q335,190 362,220 L362,270 L18,270 Z" fill="#9ED670"/>
+      <line x1="190" y1="24" x2="190" y2="270" stroke="#E5C09E" stroke-width="10"/>
+      <line x1="190" y1="24" x2="190" y2="270" stroke="#5A3825" stroke-width="2.5"/>
+      <line x1="18" y1="150" x2="362" y2="150" stroke="#E5C09E" stroke-width="10"/>
+      <line x1="18" y1="150" x2="362" y2="150" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="-8" y="-8" width="396" height="22" rx="6" fill="#EAD0B5" stroke="#5A3825" stroke-width="3"/>
+    </g>
+
+    <!-- Estante de medicamentos (esquerda-centro) -->
+    <g transform="translate(368,145)">
+      <rect x="0" y="0" width="235" height="395" fill="#C98349" stroke="#5A3825" stroke-width="3.5"/>
+      <rect x="12" y="14" width="211" height="82" fill="#9B5E2E" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="12" y="108" width="211" height="82" fill="#9B5E2E" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="12" y="202" width="211" height="90" fill="#9B5E2E" stroke="#5A3825" stroke-width="2.5"/>
+      <!-- Frascos prateleira 1 -->
+      <rect x="26" y="42" width="24" height="54" rx="4" fill="#63C5DA" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="58" y="34" width="28" height="62" rx="4" fill="#F28B82" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="94" y="46" width="22" height="50" rx="4" fill="#FDD663" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="124" y="38" width="26" height="58" rx="4" fill="#81C995" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="158" y="44" width="22" height="52" rx="4" fill="#F6AEA9" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="188" y="48" width="22" height="48" rx="4" fill="#E8EAED" stroke="#5A3825" stroke-width="2.5"/>
+      <!-- Frascos prateleira 2 -->
+      <rect x="24" y="138" width="28" height="52" rx="4" fill="#8AB4F8" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="60" y="130" width="30" height="60" rx="4" fill="#FDE293" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="98" y="142" width="24" height="48" rx="4" fill="#F28B82" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="130" y="132" width="32" height="58" rx="4" fill="#E8EAED" stroke="#5A3825" stroke-width="2.5"/>
+      <rect x="170" y="136" width="26" height="54" rx="4" fill="#63C5DA" stroke="#5A3825" stroke-width="2.5"/>
+      <!-- Plantas no topo da estante -->
+      <polygon points="28,0 74,0 66,-36 36,-36" fill="#C46238" stroke="#5A3825" stroke-width="3"/>
+      <path d="M51,-36 C30,-75 20,-55 38,-36 M51,-36 C51,-85 62,-85 55,-36 M51,-36 C78,-75 85,-50 62,-36" fill="#5BB974" stroke="#5A3825" stroke-width="2.5"/>
+      <polygon points="160,0 212,0 204,-38 168,-38" fill="#D97A3E" stroke="#5A3825" stroke-width="3"/>
+      <circle cx="186" cy="-52" r="24" fill="#5BB974" stroke="#5A3825" stroke-width="2.5"/>
+    </g>
+
+    <!-- Mesa do computador (esquerda) -->
+    <g transform="translate(215,435)">
+      <polygon points="0,35 205,0 330,10 155,55" fill="#DF9A5C" stroke="#5A3825" stroke-width="3.5"/>
+      <polygon points="0,35 155,55 155,275 0,245" fill="#B87038" stroke="#5A3825" stroke-width="3.5"/>
+      <polygon points="155,55 330,10 330,195 155,275" fill="#CC8247" stroke="#5A3825" stroke-width="3.5"/>
+      <!-- Monitor -->
+      <g transform="translate(75,-125)">
+        <polygon points="0,12 115,0 115,92 0,110" fill="#5F7385" stroke="#5A3825" stroke-width="3.5"/>
+        <polygon points="7,19 108,8 108,80 7,96" fill="#465869"/>
+        <polygon points="48,104 72,100 82,126 38,132" fill="#CFD8DC" stroke="#5A3825" stroke-width="3"/>
+      </g>
+    </g>
+
+    <!-- Quadros decorativos nas paredes -->
+    <!-- Parede esquerda -->
+    <g transform="translate(42,40)">
+      <polygon points="0,0 130,36 130,225 0,205" fill="#9E5E34" stroke="#5A3825" stroke-width="3.5"/>
+      <polygon points="12,15 118,45 118,208 12,190" fill="#CBE8E2" stroke="#5A3825" stroke-width="2.5"/>
+      <circle cx="66" cy="112" r="28" fill="#C67D43" stroke="#5A3825" stroke-width="2.5"/>
+      <ellipse cx="66" cy="122" rx="14" ry="11" fill="#F5E0C8"/>
+      <circle cx="66" cy="118" r="4" fill="#3B2314"/>
+    </g>
+    <!-- Parede fundo direita (retrato golden) -->
+    <g transform="translate(1095,125)">
+      <rect x="0" y="0" width="118" height="145" fill="#C48F65" stroke="#5A3825" stroke-width="3"/>
+      <rect x="10" y="10" width="98" height="125" fill="#BFE3EC" stroke="#5A3825" stroke-width="2"/>
+      <circle cx="59" cy="66" r="22" fill="#E8B168" stroke="#5A3825" stroke-width="2.5"/>
+      <ellipse cx="59" cy="104" rx="22" ry="26" fill="#E8B168" stroke="#5A3825" stroke-width="2.5"/>
+    </g>
+    <!-- Parede direita -->
+    <g transform="translate(1355,110)">
+      <polygon points="0,25 68,0 68,185 0,195" fill="#B37242" stroke="#5A3825" stroke-width="3"/>
+      <polygon points="8,33 60,12 60,173 8,182" fill="#AED6E6" stroke="#5A3825" stroke-width="2"/>
+    </g>
+    <g transform="translate(1440,50)">
+      <polygon points="0,28 96,0 96,205 0,218" fill="#B37242" stroke="#5A3825" stroke-width="3.5"/>
+      <polygon points="10,38 86,14 86,192 10,203" fill="#FBE5A2" stroke="#5A3825" stroke-width="2.5"/>
+    </g>
+
+    <!-- Mesa clínica de inox (direita) -->
+    <g transform="translate(985,515)">
+      <!-- Pernas metálicas -->
+      <rect x="38" y="45" width="22" height="325" rx="6" fill="#90A4AE" stroke="#372216" stroke-width="3.5"/>
+      <rect x="115" y="32" width="20" height="255" rx="5" fill="#78909C" stroke="#372216" stroke-width="3.5"/>
+      <rect x="525" y="45" width="22" height="325" rx="6" fill="#90A4AE" stroke="#372216" stroke-width="3.5"/>
+      <rect x="435" y="32" width="20" height="255" rx="5" fill="#78909C" stroke="#372216" stroke-width="3.5"/>
+      <line x1="58" y1="245" x2="125" y2="205" stroke="#90A4AE" stroke-width="12" stroke-linecap="round"/>
+      <line x1="58" y1="245" x2="125" y2="205" stroke="#372216" stroke-width="3.5"/>
+      <!-- Tampo de inox -->
+      <polygon points="0,12 100,-24 585,-24 565,42 0,42" fill="url(#tableG)" stroke="#372216" stroke-width="3.5"/>
+      <rect x="0" y="12" width="565" height="30" fill="#B0BEC5" stroke="#372216" stroke-width="3.5"/>
+    </g>
+
+    <!-- ==================== PERSONAGENS CENTRAIS ==================== -->
+    <!-- 1. Médica Veterinária (Centro) -->
+    <g transform="translate(560,115)">
+      <!-- Rabo de cavalo ruivo -->
+      <path d="M295,62 C365,25 415,95 405,185 C395,255 430,295 390,335 C345,320 335,265 335,205 Z" fill="#C85A28" stroke="#3B2012" stroke-width="3.5"/>
+      <!-- Pernas dobradas (calça azul-marinho) -->
+      <path d="M185,485 C155,565 180,635 245,638 C315,640 385,595 395,535 C365,475 265,465 185,485 Z" fill="#23395B" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M265,505 C235,585 265,658 335,655 C405,652 440,595 435,540 Z" fill="#1B2CC1" fill-opacity="0.18"/>
+      <!-- Tênis -->
+      <ellipse cx="442" cy="575" rx="26" ry="44" transform="rotate(-12 442 575)" fill="#5C534E" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Jaleco / Scrub azul-marinho -->
+      <path d="M175,265 C155,345 168,445 178,515 L395,515 C405,435 398,335 365,265 C315,242 225,242 175,265 Z" fill="#243B61" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Pescoço e Gola V -->
+      <path d="M235,215 L245,285 L275,315 L305,275 L305,215 Z" fill="#FAD2B8" stroke="#23140D" stroke-width="3"/>
+      <!-- Estetoscópio -->
+      <path d="M222,250 C205,325 215,395 255,412 C295,425 332,360 322,255" fill="none" stroke="#376996" stroke-width="9" stroke-linecap="round"/>
+      <path d="M222,250 C205,325 215,395 255,412 C295,425 332,360 322,255" fill="none" stroke="#1D3557" stroke-width="3"/>
+      <circle cx="204" cy="415" r="18" fill="#B0BEC5" stroke="#23140D" stroke-width="3.5"/>
+      <circle cx="204" cy="415" r="9" fill="#78909C"/>
+      <!-- Cabeça e rosto -->
+      <path d="M185,125 C182,205 218,248 265,248 C315,248 348,202 348,132 C348,72 308,42 262,42 C212,42 188,75 185,125 Z" fill="#FAD2B8" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Orelha Direita -->
+      <ellipse cx="352" cy="158" rx="14" ry="22" fill="#F5BFA0" stroke="#23140D" stroke-width="3"/>
+      <!-- Bochechas coradas -->
+      <ellipse cx="212" cy="182" rx="18" ry="10" fill="#F28B82" opacity="0.45"/>
+      <ellipse cx="306" cy="182" rx="18" ry="10" fill="#F28B82" opacity="0.45"/>
+      <!-- Olhos expressivos -->
+      <ellipse cx="218" cy="150" rx="16" ry="20" fill="#FFFFFF" stroke="#23140D" stroke-width="3"/>
+      <circle cx="220" cy="152" r="11" fill="#4E2A14"/>
+      <circle cx="220" cy="152" r="5.5" fill="#1A0D06"/>
+      <circle cx="215" cy="146" r="4" fill="#FFFFFF"/>
+      <ellipse cx="288" cy="150" rx="17" ry="21" fill="#FFFFFF" stroke="#23140D" stroke-width="3"/>
+      <circle cx="286" cy="152" r="11.5" fill="#4E2A14"/>
+      <circle cx="286" cy="152" r="6" fill="#1A0D06"/>
+      <circle cx="281" cy="146" r="4" fill="#FFFFFF"/>
+      <!-- Sobrancelhas, nariz e sorriso -->
+      <path d="M198,120 Q218,110 236,120" fill="none" stroke="#8D3B16" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M268,120 Q290,108 310,122" fill="none" stroke="#8D3B16" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M244,166 Q236,180 248,184" fill="none" stroke="#C88A68" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M236,204 Q262,220 290,202" fill="none" stroke="#9C3D2B" stroke-width="4" stroke-linecap="round"/>
+      <!-- Cabelo ruivo topo/franja -->
+      <path d="M178,136 C165,75 215,25 278,32 C335,38 368,82 356,142 C345,105 315,78 272,76 C225,75 195,104 178,136 Z" fill="#D3622C" stroke="#3B2012" stroke-width="3.5"/>
+      <!-- Braço direito e mão acariciando o cão -->
+      <path d="M362,285 C395,355 398,435 365,475 C325,495 235,492 175,478 L175,442 C235,448 312,452 338,432 C348,395 342,340 330,295 Z" fill="#FAD2B8" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Mão esquerda no ombro do cão -->
+      <ellipse cx="32" cy="445" rx="22" ry="32" fill="#FAD2B8" stroke="#23140D" stroke-width="3.5"/>
+    </g>
+
+    <!-- 2. Cão Border Collie (Centro-Esquerda, sentado ao lado da veterinária) -->
+    <g transform="translate(415,285)">
+      <!-- Cauda peluda no chão -->
+      <path d="M145,495 C65,490 15,525 32,562 C55,595 145,585 195,548 Z" fill="#49545E" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M32,562 C55,588 105,582 135,560 C105,548 65,545 32,562 Z" fill="#F7F4F0"/>
+      <!-- Corpo (pelagem merle cinza/preta e peito branco) -->
+      <path d="M155,215 C95,285 95,415 125,515 L295,515 C318,435 325,315 295,225 Z" fill="#5A6670" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Manchas merle escuras no dorso -->
+      <ellipse cx="145" cy="345" rx="26" ry="42" transform="rotate(-18 145 345)" fill="#262B30"/>
+      <ellipse cx="185" cy="405" rx="22" ry="34" fill="#262B30"/>
+      <circle cx="155" cy="445" r="16" fill="#262B30"/>
+      <!-- Juba / Peito branco peludo -->
+      <path d="M162,195 C142,245 162,315 215,342 C275,342 325,295 318,215 C285,192 205,188 162,195 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Patas dianteiras brancas -->
+      <path d="M202,355 L178,542 C175,562 212,566 222,548 L248,375 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M275,355 L268,555 C268,575 308,576 314,556 L318,355 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Cabeça do Border Collie -->
+      <path d="M168,85 C152,145 182,212 248,215 C315,218 345,155 328,92 C312,42 202,38 168,85 Z" fill="#5A6670" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Orelhas caídas pretas -->
+      <path d="M185,68 C135,58 118,105 142,148 C158,135 175,105 185,68 Z" fill="#262B30" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M308,65 C355,52 378,98 352,142 C335,128 320,102 308,65 Z" fill="#262B30" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Faixa branca do focinho e boca sorrindo -->
+      <path d="M252,72 C238,118 222,145 225,182 C228,208 282,212 292,182 C298,148 272,118 252,72 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3"/>
+      <!-- Olhos do cão -->
+      <circle cx="218" cy="122" r="12" fill="#FFFFFF" stroke="#23140D" stroke-width="2.5"/>
+      <circle cx="220" cy="122" r="8" fill="#5C3317"/>
+      <circle cx="218" cy="119" r="3" fill="#FFFFFF"/>
+      <circle cx="292" cy="118" r="12" fill="#FFFFFF" stroke="#23140D" stroke-width="2.5"/>
+      <circle cx="290" cy="118" r="8" fill="#5C3317"/>
+      <circle cx="288" cy="115" r="3" fill="#FFFFFF"/>
+      <!-- Focinho preto e língua -->
+      <ellipse cx="268" cy="154" rx="16" ry="12" fill="#1F2428" stroke="#23140D" stroke-width="2.5"/>
+      <path d="M242,176 C248,204 282,204 285,176 Z" fill="#3B1E1E" stroke="#23140D" stroke-width="2.5"/>
+      <path d="M252,184 C255,204 276,204 278,184 Z" fill="#F28B82"/>
+    </g>
+
+    <!-- 3. Cão Shih Tzu (Centro-Direita, sentado sobre a mesa clínica) -->
+    <g transform="translate(995,280)">
+      <!-- Cauda peluda enrolada -->
+      <path d="M225,175 C275,145 295,185 268,218 C248,238 222,222 225,175 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Corpo branco e caramelo -->
+      <path d="M72,135 C58,185 68,235 92,248 L218,248 C238,225 235,168 195,135 Z" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M168,142 C212,152 228,195 215,232 C188,225 168,185 168,142 Z" fill="#D59058" stroke="#23140D" stroke-width="3"/>
+      <!-- Patinhas na mesa -->
+      <rect x="82" y="195" width="32" height="58" rx="14" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <rect x="136" y="195" width="32" height="58" rx="14" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Cabeça redonda fofa -->
+      <circle cx="115" cy="92" r="64" fill="#F7F4F0" stroke="#23140D" stroke-width="3.5"/>
+      <!-- Manchas caramelo nas orelhas e olhos -->
+      <path d="M52,65 C22,82 24,135 52,148 C65,132 65,92 52,65 Z" fill="#C97D42" stroke="#23140D" stroke-width="3.5"/>
+      <path d="M176,65 C206,82 204,135 176,148 C163,132 163,92 176,65 Z" fill="#C97D42" stroke="#23140D" stroke-width="3.5"/>
+      <ellipse cx="86" cy="84" rx="22" ry="20" fill="#D59058"/>
+      <ellipse cx="144" cy="84" rx="22" ry="20" fill="#D59058"/>
+      <!-- Olhos e focinho do Shih Tzu -->
+      <circle cx="88" cy="84" r="10" fill="#1F140E"/>
+      <circle cx="85" cy="81" r="3.5" fill="#FFFFFF"/>
+      <circle cx="142" cy="84" r="10" fill="#1F140E"/>
+      <circle cx="139" cy="81" r="3.5" fill="#FFFFFF"/>
+      <ellipse cx="115" cy="98" rx="10" ry="7" fill="#1F140E"/>
+      <path d="M104,114 Q115,128 126,114 Z" fill="#F28B82" stroke="#23140D" stroke-width="2.5"/>
+    </g>
+
+    <!-- Plantas em vasos nas laterais (emoldurando a cena) -->
+    <!-- Vaso esquerdo grande -->
+    <g transform="translate(85,585)">
+      <path d="M25,125 L115,125 L102,215 L38,215 Z" fill="#B0BEC5" stroke="#23140D" stroke-width="3.5"/>
+      <g fill="#5BB974" stroke="#23140D" stroke-width="2.5">
+        <path d="M70,125 C20,40 -15,-20 15,-65 C45,-20 55,45 70,125 Z"/>
+        <path d="M70,125 C55,20 50,-55 72,-95 C95,-55 88,20 70,125 Z"/>
+        <path d="M70,125 C110,45 145,-15 125,-60 C95,-20 82,45 70,125 Z"/>
+      </g>
+    </g>
+    <!-- Vaso esquerdo menor laranja -->
+    <g transform="translate(265,610)">
+      <ellipse cx="52" cy="95" rx="44" ry="38" fill="#D97A3E" stroke="#23140D" stroke-width="3.5"/>
+      <g fill="#4CAF50" stroke="#23140D" stroke-width="2.5">
+        <ellipse cx="26" cy="48" rx="22" ry="12" transform="rotate(-25 26 48)"/>
+        <ellipse cx="52" cy="36" rx="16" ry="26"/>
+        <ellipse cx="78" cy="48" rx="22" ry="12" transform="rotate(25 78 48)"/>
+      </g>
+    </g>
+    <!-- Vaso direito grande -->
+    <g transform="translate(1415,525)">
+      <path d="M20,165 L125,165 L110,255 L35,255 Z" fill="#D96B43" stroke="#23140D" stroke-width="3.5"/>
+      <g fill="#5BB974" stroke="#23140D" stroke-width="3">
+        <ellipse cx="35" cy="95" rx="26" ry="48" transform="rotate(-22 35 95)"/>
+        <ellipse cx="75" cy="45" rx="28" ry="56"/>
+        <ellipse cx="115" cy="95" rx="26" ry="48" transform="rotate(22 115 95)"/>
+        <ellipse cx="55" cy="-15" rx="26" ry="48" transform="rotate(-12 55 -15)"/>
+        <ellipse cx="98" cy="-10" rx="26" ry="48" transform="rotate(15 98 -10)"/>
+      </g>
+    </g>
+  </svg>
+  <!-- Se o arquivo .jfif também estiver na pasta, ele sobrepõe de forma centralizada automaticamente -->
+  <div class="ext-bg"></div>
+</div>
+<div class="ambient l1"></div><div class="ambient l2"></div>
+
+<div id="status">
+  <span class="pill"><span data-ic="paw-print"></span> Matão 2026</span>
+  <span class="mid" id="clock">--:--</span>
+  <span class="pill"><span data-ic="hourglass-medium"></span> <span id="dProva">-</span> dias para a prova</span>
+</div>
+
+<div id="home">
+  <div>
+    <div class="group-title">Cronograma por semana</div>
+    <div class="grid" id="weeksGrid"></div>
+  </div>
+  <div>
+    <div class="group-title">Aplicativos e Informações</div>
+    <div class="grid" id="appsGrid"></div>
+  </div>
+</div>
+
+<div class="dock" id="dock"></div>
+
+<div class="window" id="win">
+  <div class="whead">
+    <div class="wl"><button class="abtn b-close" id="wClose" aria-label="Fechar"><span data-ic="x"></span></button><button class="abtn b-exp" id="wExp" aria-label="Expandir"><span data-ic="arrows-out"></span></button></div>
+    <div class="wtitle"><b id="wTitle"></b><small id="wSub"></small></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="wbody" id="wBody"></div>
+</div>
+
+<div class="overlay" id="vOverlay">
+  <div class="vmodal" id="vModal" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="vhead"><span data-ic="youtube-logo" style="color:#FF453A;font-size:22px"></span><b id="vTitle"></b><button class="xbtn" id="vClose" aria-label="Fechar"><span data-ic="x"></span></button></div>
+    <div class="vframe">
+      <div id="ytp"></div>
+      <div class="fb" id="fb">
+        <button class="big" id="fbPlay" aria-label="Assistir"><span data-ic="play"></span></button>
+        <p id="fbMsg"></p>
+        <div class="row">
+          <button class="btn red" id="fbPop"><span data-ic="browsers"></span> Assistir em janela popup</button>
+          <a class="btn" id="fbTab" target="_blank" rel="noopener"><span data-ic="arrow-square-out"></span> Abrir no YouTube</a>
+          <button class="btn" id="fbCopy"><span data-ic="copy"></span> Copiar link</button>
+        </div>
+      </div>
+    </div>
+    <div class="vlist" id="vList"></div>
+    <div class="vfoot" id="vFoot"></div>
+  </div>
+</div>
+
+<div id="alertOv" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
+  <div class="alertbox">
+    <div class="alertbody"><div class="alertico"><span data-ic="repeat"></span></div><div class="alerttitle" id="alertTitle"></div><div class="alertmsg" id="alertMsg"></div></div>
+    <div class="alertbtns"><button id="alertLater">Depois</button><button id="alertGo">Fazer revisão</button></div>
+  </div>
+</div>
+
+<input type="file" id="qFileInput" accept=".json,application/json" style="display:none">
+<div id="toast"><span data-ic="check-circle" style="color:#32D74B;font-size:18px"></span><span id="toastTxt"></span></div>
+
+<script>
+/* ---------- Vídeos ---------- */
+const V = {
+  cf:   {t:"Art. 196 a 200, Legislação do SUS", id:"aMVlNgW0P_4"},
+  cfq:  {t:"50 questões, Art. 196 a 200 (CF/88)", id:"QdIVtEpYDR0"},
+  l80a: {t:"SUS para concursos: por dentro da Lei 8.080/90", id:"mmN5HHDtM0A"},
+  l80b: {t:"Resumão de SUS 2025: Lei 8080/90", id:"Qoc-okzTTZk"},
+  l80q: {t:"93 questões comentadas da Lei 8.080 (parte 1)", id:"7_XiaAAPY8w"},
+  epi:  {t:"Resumão de Epidemiologia e indicadores em 2h", id:"qtMg-Cypoyo"},
+  raiv1:{t:"Medidas de profilaxia, tema de concursos para veterinário", id:"fLAdCmNg90w"},
+  raiv2:{t:"Prevenção e profilaxia da raiva humana e animal", id:"bG7fYvR_w2g"},
+  leish1:{t:"Leishmaniose visceral, aula completa (parte 1)", id:"qA18TKTs2ak"},
+  leish2:{t:"Leishmaniose tegumentar e visceral", id:"ILYDt9IjJq4"},
+  lepto:{t:"Leptospirose (aula de 2016, confira atualização)", id:"BnwW_KsEbvo"},
+  etica1:{t:"Código de ética veterinário, parte 1", id:"R-uu2l7Djlk"},
+  etica2:{t:"Código de Ética do Médico Veterinário", id:"dduAZRo_5HM"},
+  interp1:{t:"Interpretação de texto: 4 passos para acertar", id:"z0PX0-KjI6U"},
+  interpPL:{t:"Curso grátis de interpretação de textos (playlist)", pl:"PL-4cMc9KcAt5HuK2LF1jrxBZXl6Jpeqa8"},
+  coes1:{t:"Coesão e coerência textual para concurso", id:"c0l3a6r5c9o"},
+  coes2:{t:"Aula completa sobre coesão textual", id:"60wyY63Lz0k"},
+  anaf: {t:"Coesão e coerência: anáfora, catáfora e mais", id:"f1vCAm294i8"},
+  mat1: {t:"Matemática básica: razão, proporção, regra de três e porcentagem", id:"aCjc5HAy3_M"},
+  matPL:{t:"Regra de três, razão e proporção (playlist)", pl:"PLougO8IRm3JbYMLFargRVggD-CcYSSUsw"},
+  d7508:{t:"Decreto 7.508/2011: principais conceitos", id:"pRV6Nh-Oq7U"},
+  l8142:{t:"Lei 8.142/1990 na sua prova", id:"bR6fvRKZrKQ"},
+  bios: {t:"Segurança na clínica veterinária (biossegurança)", id:"KxBJ_exkUCY"},
+  mane: {t:"Manejo populacional ético de cães e gatos", id:"FaoBtaiE_88"},
+  uvz:  {t:"Unidades de Vigilância em Zoonoses", id:"MURLnNIOIOo"},
+  poa1: {t:"Introdução à inspeção de produtos de origem animal (módulo I)", id:"86YT83fRBY0"},
+  poa2: {t:"Inspeção de POA, concurso veterinário MAPA", id:"4T8PgU-Konk"},
+  dta:  {t:"Doenças Transmissíveis por Alimentos (DTA), aula completa", id:"f-jNhAKKJLI"},
+  conc1:{t:"Concordância verbal e nominal: veja antes da prova", id:"C8JPK8vBfa0"},
+  conc2:{t:"Aulão de concordância verbal e nominal (VUNESP)", id:"5rss4Lhmkuc"},
+  reg1: {t:"Revisão de regência verbal e nominal", id:"Y5ChEVWOWRk"},
+  crase:{t:"Crase, sintaxe e regência (INSS 2022)", id:"94qslD786X8"},
+  pnab1:{t:"PNAB 2017, Portaria 2.436 (aula 1)", id:"HGNIhUPz_jY"},
+  pnab2:{t:"Política Nacional da Atenção Básica (Natale Souza)", id:"j8LU4FUJxg4"},
+  pnabq:{t:"PNAB: resolução de questões atualizadas 2024", id:"WQlXlFhxe5k"},
+  sem1: {t:"Exame físico e clínico veterinário, semiologia", id:"gdN9DzkPBYw"},
+  sem2: {t:"Exame físico em cão, semiologia veterinária", id:"uw5nO0HAkug"},
+  vac1: {t:"Protocolo vacinal em cães e gatos", id:"qFYYz80l7Ck"},
+  vac2: {t:"Vacinação de cães e gatos segundo a WSAVA", id:"q_oJJPZY6_c"},
+  ecto: {t:"Ectoparasitas de cães e gatos: controle bem-sucedido", id:"k3CWpqRad4c"},
+  ind1: {t:"Morbidade, mortalidade, incidência e prevalência", id:"qpDGMhpcFeo"},
+  ind2: {t:"Mortalidade e letalidade", id:"h46BOGhmrjM"},
+  surto:{t:"Etapas de investigação de surtos e emergências", id:"0ZSC0t8_IHU"},
+  oh1:  {t:"Saúde Única: o elo entre pessoas, animais e ecossistemas", id:"TyyTaq7BaZY"},
+  oh2:  {t:"Saúde Única e as zoonoses", id:"pegdCw4qwfs"},
+  vig1: {t:"SUS em Mapas: vigilância epidemiológica", id:"BGhYQBMD26Q"},
+  vig2: {t:"Diferenças entre vigilância sanitária e epidemiológica", id:"x8ulkd1hYf0"},
+  pnvs: {t:"Política Nacional de Vigilância em Saúde: principais conceitos", id:"4W2qDSBiJjo"},
+  vigq: {t:"Vigilância epidemiológica: o que cai na prova (SINAN, surtos, notificação)", id:"_43j8nIDWXk"},
+  asep1:{t:"Assepsia e antissepsia: como evitar infecções", id:"NkZLKVF7B_o"},
+  asep2:{t:"Antissepsia e esterilização, Bases da Cirurgia", id:"MEnegdM8eBU"},
+  sutPL:{t:"Suturas (playlist)", pl:"PL-VG4oER0U36wvRFab0rVusJfMzuxrQwt"},
+  dose1:{t:"Cálculo de doses na veterinária", id:"fyci9HxQ8Ms"},
+  dose2:{t:"Cálculo de doses de medicamentos veterinários", id:"xtruG4eemZg"},
+  infoPL:{t:"Curso básico de informática para concursos (playlist)", pl:"PLzMN3jVT58xo_JFbE7h4l9-mbgFhBg_Nr"},
+  info1:{t:"Informática básica para concursos 2025", id:"N8tizX5Wvl4"},
+  infoSeg:{t:"Informática para concursos e a segurança da informação", id:"jLYXwMY9lQQ"},
+  nuvem:{t:"Computação em nuvem: armazenamento em nuvem", id:"-ILLZokFGkM"},
+  susRev:{t:"Revisão geral do SUS: leis 8.080 e 8.142, CF/88 e Decreto 7.508", id:"vxJoUxZIbnU"}
+};
+
+/* ---------- Cronograma ---------- */
+const W = [
+ {n:0, name:"Semana 0: preparação", goal:"Inscrição feita e ponto de partida medido.", days:[
+  {d:"2026-10-23", h:"1h", items:[{m:"Inscrição", c:"both", t:"Ler os capítulos 2, 4 e 8 do edital e o Anexo II. Inscrever-se nos cargos 134 (prioridade) e 133 em www.ibamsp-concursos.org.br (R$ 97,00 cada). O cadastro pede upload de uma foto recente, com a cabeça descoberta e sem filtros. Confirmar antes que ela cumpre o requisito de título do cargo 134. Prazo: 29/10 até 23h59."}]},
+  {d:"2026-10-24", h:"3h", items:[{m:"Diagnóstico", c:"both", t:"20 questões de provas anteriores da banca IBAM: 5 de Português, 5 de SUS e 10 de veterinária (5 de vigilância e saúde pública e 5 de clínica). Anotar o percentual de acerto por matéria. Onde ficar abaixo de 60%, a matéria ganha 30 minutos extras nas semanas 1 e 2.", q:["questões IBAM médico veterinário prefeitura resolução"]}]},
+  {d:"2026-10-25", h:"3h", items:[
+    {m:"Organização", c:"both", t:"1h30 para juntar o material: texto das leis do Anexo II, resumos e o caderno de erros."},
+    {m:"SUS", c:"both", t:"1h30: Constituição Federal, arts. 196 a 200.", v:["cf","cfq"]}]}
+ ]},
+ {n:1, name:"Semana 1: base", goal:"Fechar CF e Lei 8.080, epidemiologia básica e as zoonoses principais.", days:[
+  {d:"2026-10-26", h:"2h", items:[{m:"SUS", c:"both", t:"Lei 8.080/1990, parte 1: objetivos, princípios e diretrizes, organização, direção e gestão, competências de União, Estados e Municípios.", v:["l80a","l80b"]}]},
+  {d:"2026-10-27", h:"2h", items:[{m:"Específicos", c:"both", t:"Epidemiologia aplicada: cadeia de transmissão, fontes de infecção, reservatórios, vetores, vias de transmissão e população suscetível.", v:["epi"], q:["cadeia epidemiológica de transmissão fontes de infecção reservatórios vetores"]}]},
+  {d:"2026-10-28", h:"2h", items:[{m:"Português", c:"both", t:"Interpretação de texto: tema, tese, argumentos, informações explícitas e implícitas, inferências, fatos e opiniões.", v:["interp1","interpPL"]}]},
+  {d:"2026-10-29", h:"2h", items:[{m:"Específicos: raiva", c:"both", t:"Raiva: ciclos de transmissão, profilaxia pré e pós-exposição, vigilância. Último dia de inscrição: confirme hoje que pagou.", v:["raiv1","raiv2"]}]},
+  {d:"2026-10-30", h:"2h", items:[{m:"SUS", c:"both", t:"Lei 8.080/1990, parte 2: campo de atuação (vigilância sanitária e epidemiológica, saúde do trabalhador, assistência terapêutica). Depois, 30 questões de CF e Lei 8.080.", v:["l80q"]}]},
+  {d:"2026-10-31", h:"4h", items:[
+    {m:"Específicos", c:"both", t:"2h: leishmanioses (visceral e tegumentar), leptospirose e Código de Ética do Médico-Veterinário.", v:["leish1","leish2","lepto","etica1","etica2"]},
+    {m:"Matemática", c:"both", t:"1h: frações, razão e proporção, regra de três simples, porcentagem.", v:["mat1","matPL"]},
+    {m:"Questões", c:"both", t:"1h de questões de SUS."}]},
+  {d:"2026-11-01", h:"3h", items:[
+    {m:"Português", c:"both", t:"1h: coesão e coerência textual.", v:["coes1","coes2"]},
+    {m:"Revisão", c:"both", t:"2h: refazer todas as questões erradas e passar o essencial ao caderno de erros."}]}
+ ]},
+ {n:2, name:"Semana 2: biossegurança, inspeção e simulado", goal:"Fim do conteúdo comum aos dois cargos.", days:[
+  {d:"2026-11-02", h:"2h", items:[{m:"SUS", c:"both", t:"Decreto 7.508/2011: região de saúde, rede de atenção, porta de entrada, Rename. (Feriado de Finados: se puder, some 2h de questões.)", v:["d7508"]}]},
+  {d:"2026-11-03", h:"2h", items:[{m:"Específicos", c:"both", t:"Biossegurança e bem-estar animal. Controle de zoonoses e manejo populacional de cães e gatos.", v:["bios","mane","uvz"]}]},
+  {d:"2026-11-04", h:"2h", items:[{m:"Português", c:"both", t:"Classes de palavras no contexto, conectivos e mecanismos de referenciação, relações de sentido, ambiguidade.", v:["anaf"], q:["classes de palavras no contexto concurso aula","relações semânticas ambiguidade efeitos de sentido concurso"]}]},
+  {d:"2026-11-05", h:"2h", items:[{m:"Específicos", c:"both", t:"Noções de defesa sanitária animal e inspeção de produtos de origem animal. Boas práticas e higiene dos alimentos.", v:["poa1","poa2"], q:["defesa sanitária animal noções concurso veterinário"]}]},
+  {d:"2026-11-06", h:"2h", items:[{m:"SUS", c:"both", t:"Lei 8.142/1990 (conselhos e conferências de saúde, transferências): 40 min. Depois 80 min de questões de tudo o que foi visto em SUS.", v:["l8142"]}]},
+  {d:"2026-11-07", h:"4h", items:[
+    {m:"Específicos", c:"134", t:"2h: doenças transmitidas por alimentos, prevenção e controle.", v:["dta"]},
+    {m:"Matemática", c:"both", t:"1h: equações do 1º grau, unidades e conversões, tabelas e gráficos.", q:["equação do 1º grau concurso aula","unidades de medida conversões concurso","interpretação de tabelas e gráficos concurso"]},
+    {m:"Questões", c:"both", t:"1h de questões de Português."}]},
+  {d:"2026-11-08", h:"4h30", sp:"sim", items:[{m:"SIMULADO 1", c:"both", t:"40 questões com a distribuição real (10 Português, 5 Matemática, 5 Informática, 10 SUS, 10 Específicos), cronometradas em 3h30. Depois, 1h de correção. Nos Específicos, faça as 10 questões da trilha do Sanitarista (134). Meta: 28 acertos (70%)."}]}
+ ]},
+ {n:3, name:"Semana 3: trilha do Sanitarista (134)", goal:"PNAB fechada e primeira parte da trilha do Sanitarista, que tem prioridade.", days:[
+  {d:"2026-11-09", h:"2h", items:[{m:"SUS", c:"both", t:"Portaria GM/MS 2.436/2017 (PNAB): princípios, diretrizes, atributos da Atenção Primária, equipe, territorialização.", v:["pnab1","pnab2"]}]},
+  {d:"2026-11-10", h:"2h", items:[{m:"Específicos", c:"134", t:"Indicadores epidemiológicos: incidência, prevalência, morbidade, mortalidade e letalidade.", v:["ind1","ind2"]}]},
+  {d:"2026-11-11", h:"2h", items:[{m:"Português", c:"both", t:"Concordância nominal e verbal. Regência nominal e verbal.", v:["conc1","conc2","reg1"]}]},
+  {d:"2026-11-12", h:"2h", items:[{m:"Específicos", c:"134", t:"Investigação de surtos, casos e epizootias, análise e comunicação de riscos, Saúde Única e integração entre saúde humana, animal e ambiental.", v:["surto","oh1","oh2"]}]},
+  {d:"2026-11-13", h:"2h", items:[{m:"SUS", c:"both", t:"PNAB, continuação: coordenação do cuidado, longitudinalidade, integralidade, redes de atenção. Questões de PNAB e Decreto 7.508.", v:["pnabq"]}]},
+  {d:"2026-11-14", h:"4h", items:[
+    {m:"Específicos", c:"134", t:"2h: vigilância epidemiológica e ambiental das zoonoses, notificação, investigação epidemiológica, coleta e encaminhamento de amostras, medidas de controle.", v:["vigq"], q:["coleta e envio de amostras raiva leishmaniose vigilância zoonoses"]},
+    {m:"Matemática", c:"both", t:"1h: média simples e ponderada, mediana, moda, noções de probabilidade.", q:["média ponderada mediana moda concurso aula","noções de probabilidade concurso aula"]},
+    {m:"Questões", c:"both", t:"1h de questões de SUS."}]},
+  {d:"2026-11-15", h:"3h", items:[
+    {m:"Português", c:"both", t:"1h: uso da crase.", v:["crase"]},
+    {m:"Revisão", c:"both", t:"2h: revisar a semana e o caderno de erros dos simulados."}]}
+ ]},
+ {n:4, name:"Semana 4: vigilância e aprofundamento", goal:"Fechar a trilha do Sanitarista e começar o complemento do cargo 133.", days:[
+  {d:"2026-11-16", h:"2h", items:[{m:"SUS", c:"both", t:"Vigilância em saúde: epidemiológica, sanitária, ambiental e saúde do trabalhador. Notificação compulsória.", v:["vig1","vig2"]}]},
+  {d:"2026-11-17", h:"2h", items:[{m:"Específicos", c:"134", t:"Vigilância de populações animais, reservatórios e vetores de interesse para a saúde pública. Controle de vetores e animais sinantrópicos. Prevenção de zoonoses.", v:["uvz"], q:["vigilância de reservatórios e vetores zoonoses aula","controle de animais sinantrópicos vigilância aula"]}]},
+  {d:"2026-11-18", h:"2h", items:[{m:"Português", c:"both", t:"Pontuação e efeitos de sentido. Período simples e composto, coordenação e subordinação.", q:["pontuação e efeitos de sentido concurso aula","período composto coordenação subordinação concurso"]}]},
+  {d:"2026-11-19", h:"2h", items:[{m:"Específicos", c:"134", t:"Vigilância e inspeção sanitária de estabelecimentos e produtos de origem animal (competência municipal): riscos na produção, manipulação, conservação, armazenamento, transporte e comercialização. Planejamento, execução, monitoramento e avaliação de ações de vigilância.", v:["poa1","poa2"], q:["vigilância sanitária estabelecimentos produtos de origem animal competência municipal"]}]},
+  {d:"2026-11-20", h:"2h", items:[{m:"SUS", c:"both", t:"Resolução CNS 588/2018 (Política Nacional de Vigilância em Saúde). Feriado: se puder, some 2h de questões de SUS.", v:["pnvs"]}]},
+  {d:"2026-11-21", h:"4h", items:[
+    {m:"Específicos", c:"134", t:"1h: educação em saúde, mobilização social e comunicação de riscos. Elaboração de registros, relatórios, pareceres e documentos técnicos.", q:["educação em saúde mobilização social zoonoses aula","elaboração de relatórios e pareceres técnicos vigilância"]},
+    {m:"Complemento 133", c:"133", t:"1h: anamnese, exame clínico e diagnóstico em cães e gatos (semiologia).", v:["sem1","sem2"]},
+    {m:"Informática", c:"both", t:"1h: sistema operacional, arquivos e pastas, editores de texto, planilhas, apresentações.", v:["infoPL","info1"]},
+    {m:"Questões", c:"both", t:"1h de questões de Português."}]},
+  {d:"2026-11-22", h:"4h30", sp:"sim", items:[{m:"SIMULADO 2", c:"both", t:"40 questões em 3h30 e 1h de correção. Nos Específicos, faça as 10 questões da trilha do Sanitarista (134). Meta: 30 acertos (75%). Cada matéria abaixo de 70% ganha 1h extra na semana 5."}]}
+ ]},
+ {n:5, name:"Semana 5: complemento do cargo 133", goal:"Estudar só o que o cargo 133 tem de diferente. O conteúdo do Sanitarista passa a ser apenas revisado, pelas revisões espaçadas.", days:[
+  {d:"2026-11-23", h:"2h", items:[{m:"SUS", c:"both", t:"Promoção da saúde e prevenção de doenças e agravos. Acolhimento, humanização e cuidado centrado no usuário.", q:["promoção da saúde e prevenção de doenças SUS concurso aula","acolhimento e humanização PNH concurso aula"]}]},
+  {d:"2026-11-24", h:"2h", items:[
+    {m:"Complemento 133", c:"133", t:"1h: principais doenças infecciosas, parasitárias e não infecciosas de cães e gatos.", q:["doenças infecciosas de cães e gatos aula clínica médica","cinomose parvovirose leptospirose cães aula"]},
+    {m:"Complemento 133", c:"133", t:"1h: imunização, prevenção de doenças e controle de endoparasitas e ectoparasitas.", v:["vac1","vac2","ecto"]}]},
+  {d:"2026-11-25", h:"2h", items:[{m:"Português", c:"both", t:"Reescrita de frases, correção gramatical, adequação da linguagem ao gênero e ao interlocutor. Ortografia e acentuação.", q:["reescrita de frases concurso aula","acentuação gráfica e ortografia concurso aula"]}]},
+  {d:"2026-11-26", h:"2h", items:[{m:"Complemento 133", c:"133", t:"Fundamentos de cirurgia: assepsia e antissepsia, preparo do paciente e do campo operatório, instrumentação, hemostasia, suturas, manejo de feridas e cuidados pré, trans e pós-operatórios.", v:["asep1","asep2","sutPL"]}]},
+  {d:"2026-11-27", h:"2h", items:[{m:"SUS", c:"both", t:"Participação e controle social (conselhos e conferências), Resolução CNS 553/2017 (Carta dos Direitos e Deveres da Pessoa Usuária). Sai hoje o edital de convocação: confira local e horário da prova.", v:["l8142"], q:["Resolução CNS 553/2017 Carta dos Direitos e Deveres da Pessoa Usuária da Saúde"]}]},
+  {d:"2026-11-28", h:"4h", items:[
+    {m:"Complemento 133", c:"133", t:"2h: farmacologia veterinária (vias de administração, cálculo de doses, uso responsável), 1h; exames laboratoriais (indicações, coleta, interpretação), 30 min; noções de reprodução, manejo sanitário e documentos (prontuário, atestado, laudo), 30 min.", v:["dose1","dose2"], q:["exames laboratoriais hemograma bioquímico cães gatos interpretação aula","prontuário atestado laudo veterinário documentos médico veterinário aula"]},
+    {m:"Informática", c:"both", t:"1h: internet, e-mail, nuvem, segurança da informação, PDF.", v:["infoSeg","nuvem"]},
+    {m:"Questões", c:"both", t:"1h de questões de SUS.", v:["susRev"]}]},
+  {d:"2026-11-29", h:"4h30", sp:"sim", items:[{m:"SIMULADO 3", c:"both", t:"40 questões em 3h30 e 1h de correção. Nos Específicos, faça as 10 questões da trilha do cargo 133. Último simulado completo. Meta: 32 acertos (80%)."}]}
+ ]},
+ {n:6, name:"Semana 6: revisão e prova", goal:"Menos horas e nenhum conteúdo novo.", days:[
+  {d:"2026-11-30", h:"1h30", items:[{m:"SUS", c:"both", t:"Reler os resumos das leis. Refazer todas as questões de SUS marcadas no caderno de erros."}]},
+  {d:"2026-12-01", h:"1h30", items:[{m:"Específicos", c:"both", t:"Reler o caderno de erros: 1h da trilha do Sanitarista (134) e 30 min do complemento do 133. Revisão rápida de raiva, leptospirose e leishmanioses.", v:["raiv1","leish1"]}]},
+  {d:"2026-12-02", h:"1h30", items:[{m:"Português", c:"both", t:"30 questões de Português e correção."}]},
+  {d:"2026-12-03", h:"2h", items:[{m:"Matemática e Informática", c:"both", t:"1h Matemática: 15 questões. 1h Informática: 15 questões e revisão dos erros."}]},
+  {d:"2026-12-04", h:"1h", items:[{m:"Leitura leve", c:"both", t:"Ler só os resumos, sem questões novas. Separar documento e canetas. Dormir pelo menos 8 horas."}]},
+  {d:"2026-12-05", h:"0h", items:[{m:"Descanso", c:"both", t:"Nada de conteúdo. Conferir o local da prova e o trajeto. Jantar leve e deitar cedo."}]},
+  {d:"2026-12-06", h:"3h30", sp:"prova", items:[{m:"PROVA", c:"both", t:"Ver o checklist do dia da prova nas informações do concurso. Confira no edital de convocação (27/11) o horário da prova de cada cargo."}]}
+ ]}
+];
+
+/* ---------- ícones (SVG embutido, sem dependência externa) ---------- */
+const ICONS = {
+ "check":'<polyline points="20 6 9 17 4 12"/>',
+ "x":'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+ "clock":'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+ "check-circle":'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+ "play":'<polygon points="6 3 20 12 6 21" fill="currentColor"/>',
+ "play-circle":'<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16" fill="currentColor"/>',
+ "magnifying-glass":'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+ "youtube-logo":'<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48" fill="currentColor"/>',
+ "arrows-out":'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+ "arrow-square-out":'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+ "copy":'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+ "browsers":'<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><circle cx="6.5" cy="6" r=".6" fill="currentColor"/><circle cx="9" cy="6" r=".6" fill="currentColor"/>',
+ "funnel":'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+ "info":'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+ "warning":'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+ "warning-circle":'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+ "chart":'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+ "calendar-check":'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/>',
+ "calendar-star":'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/>',
+ "timer":'<circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 14.5"/><line x1="9" y1="2" x2="15" y2="2"/>',
+ "id-card":'<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M14.5 9.5H19M14.5 13H19M5.5 16c.5-1.5 1.5-2 3-2s2.5.5 3 2"/>',
+ "users":'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+ "stethoscope":'<path d="M5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 12 0V4a2 2 0 0 0-2-2h-1"/><path d="M8 15v1a6 6 0 0 0 12 0v-4"/><circle cx="20" cy="10" r="2"/>',
+ "shield-check":'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>',
+ "paw":'<circle cx="7" cy="10" r="2"/><circle cx="11" cy="5.5" r="2"/><circle cx="16" cy="5.5" r="2"/><circle cx="20" cy="10" r="2"/><path d="M13.5 11c-3 0-5.5 2.5-5.5 5 0 2 1.5 3 3 3 .8 0 1.6-.3 2.5-.3s1.7.3 2.5.3c1.5 0 3-1 3-3 0-2.5-2.5-5-5.5-5z"/>',
+ "repeat":'<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+ "hourglass":'<path d="M6 2h12M6 22h12M7 2v4.5a5 5 0 0 0 2.2 4.2L12 12l-2.8 1.3A5 5 0 0 0 7 17.5V22M17 2v4.5a5 5 0 0 1-2.2 4.2L12 12l2.8 1.3A5 5 0 0 1 17 17.5V22"/>',
+ "list-checks":'<line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/>',
+ "upload":'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+ "download":'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+ "book-open":'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+};
+const ALIAS = {"paw-print":"paw","hourglass-medium":"hourglass"};
+function svg(n){ n = ALIAS[n] || n; return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[n]||"")+'</svg>'; }
+function ic(n){ return svg(n); }
+function hydrate(root){ (root||document).querySelectorAll("[data-ic]").forEach(e => { if(!e.firstChild) e.innerHTML = svg(e.dataset.ic); }); }
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let cargo = store.get("matao_cargo","both"); if(cargo!=="134") cargo = "both";
+let done  = store.get("matao_done",{});
+let rvDone = store.get("matao_rv",{});
+let qBank = store.get("matao_qbank", []);       // Banco de questões carregado via JSON
+let qAns  = store.get("matao_qans", {});        // Respostas marcadas pelo usuário
+let openWeek = null, openApp = null;
+
+// Estado atual do App Questões
+let qFilter = { week: 1, subj: "ALL" };
+
+const fmtDay = new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});
+const parse = iso => { const [y,m,d] = iso.split("-").map(Number); return new Date(y,m-1,d); };
+const todayISO = () => { const t=new Date(); return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0"); };
+const hoursOf = h => { const m=/(\d+)h(?:(\d+))?/.exec(h); return m ? Number(m[1])+(m[2]?Number(m[2])/60:0) : 0; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const watchUrl = v => v.pl ? "https://www.youtube.com/playlist?list="+v.pl : "https://www.youtube.com/watch?v="+v.id;
+const visItems = day => day.items.filter(it => cargo==="both" || it.c==="both" || it.c===cargo);
+const visDays  = w => w.days.filter(d => visItems(d).length);
+
+function toast(msg, icon){
+  const t = $("#toast"); $("#toastTxt").textContent = msg;
+  t.querySelector("[data-ic]").innerHTML = ICONS[icon||"check-circle"] ? svg(icon||"check-circle") : "";
+  t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+/* ---------- Normalização das matérias da semana para o App Questões ---------- */
+const SKIP_SUBJ = new Set(["Inscrição","Organização","Revisão","Leitura leve","Descanso","PROVA","Questões"]);
+function normalizeSubject(m){
+  if(/^Específicos/i.test(m)) return "Específicos";
+  if(/^SIMULADO/i.test(m)) return "Simulado";
+  return m;
+}
+function getWeekSubjects(weekNum){
+  const w = W.find(x => x.n === Number(weekNum));
+  if(!w) return [];
+  const map = new Map();
+  w.days.forEach(d => {
+    visItems(d).forEach(it => {
+      if(SKIP_SUBJ.has(it.m)) return;
+      const norm = normalizeSubject(it.m);
+      if(!map.has(norm)) map.set(norm, []);
+      map.get(norm).push({ date: d.d, rawSubj: it.m, cargo: it.c, text: it.t });
+    });
+  });
+  // Caso o usuário tenha subido questões no JSON com uma matéria extra nessa semana, inclui também
+  qBank.filter(q => Number(q.semana) === Number(weekNum)).forEach(q => {
+    const norm = normalizeSubject(q.materia || "Geral");
+    if(!map.has(norm)) map.set(norm, []);
+  });
+  return Array.from(map.entries()).map(([name, items]) => ({ name, items }));
+}
+
+/* ---------- Tentativa automática de puxar ./questoes.json do servidor ---------- */
+async function autoFetchQuestionsJson(silent = true){
+  if(!/^https?:$/.test(location.protocol)){
+    if(!silent) toast("Abra via http:// ou use 'Importar .json' para carregar do computador", "info");
+    return;
+  }
+  try{
+    const res = await fetch("./questoes.json?t=" + Date.now(), { cache: "no-store" });
+    if(!res.ok) throw new Error("Não encontrado");
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (Array.isArray(data.questoes) ? data.questoes : null);
+    if(list){
+      qBank = list;
+      store.set("matao_qbank", qBank);
+      if(!silent) toast(qBank.length + " questões sincronizadas de questoes.json!");
+      if(openApp === "questoes") refreshWindow();
+      renderHome();
+    }
+  }catch(e){
+    if(!silent) toast("Arquivo questoes.json ainda não encontrado na pasta do servidor", "info");
+  }
+}
+
+function downloadTemplateJson(){
+  const sample = [
+    {
+      "id": "s1_sus_01",
+      "semana": 1,
+      "materia": "SUS",
+      "cargo": "both",
+      "enunciado": "De acordo com a Lei Federal nº 8.080/1990, a vigilância epidemiológica é entendida como:",
+      "alternativas": [
+        "A) Um conjunto de ações capazes de eliminar ou prevenir riscos sanitários em produtos de origem animal.",
+        "B) Um conjunto de ações que proporcionam o conhecimento, a detecção ou prevenção de qualquer mudança nos fatores determinantes e condicionantes de saúde individual ou coletiva.",
+        "C) A participação exclusiva de órgãos federais no controle de zoonoses.",
+        "D) O atendimento ambulatorial restrito à rede privada conveniada."
+      ],
+      "correta": 1,
+      "comentario": "Art. 6º, § 2º da Lei 8.080/90: definição clássica de Vigilância Epidemiológica cobrada pela banca IBAM."
+    },
+    {
+      "id": "s1_esp_01",
+      "semana": 1,
+      "materia": "Específicos",
+      "cargo": "both",
+      "enunciado": "Na cadeia epidemiológica da Leishmaniose Visceral, o principal vetor no Brasil e o reservatório urbano mais importante são, respectivamente:",
+      "alternativas": [
+        "A) Lutzomyia longipalpis e o cão doméstico (Canis familiaris).",
+        "B) Aedes aegypti e o gato doméstico.",
+        "C) Culex quinquefasciatus e roedores sinantrópicos.",
+        "D) Amblyomma sculptum e a capivara."
+      ],
+      "correta": 0,
+      "comentario": "O flebotomíneo Lutzomyia longipalpis (mosquito-palha) é o principal vetor e o cão é o principal reservatório doméstico urbano."
+    }
+  ];
+  const blob = new Blob([JSON.stringify(sample, null, 2)], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "questoes.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Modelo questoes.json baixado!");
+}
+
+/* ---------- revisão espaçada ---------- */
+const RV_INT = [1,7,21];            // dias após o estudo
+const RV_LAST = "2026-12-04";       // última data com revisão (05/12 é descanso)
+const RV_SKIP = new Set(["Inscrição","Diagnóstico","Organização","Questões","Revisão","Leitura leve","Descanso","PROVA","Matemática e Informática"]);
+const addDays = (iso,n) => { const d = parse(iso); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const shortDate = iso => parse(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+function topicLabel(it){
+  let s = it.t.replace(/^\d+h(?:\d+)?:\s*/,"").split(/\.\s(?=[A-ZÁÉÍÓÚÂÊÔÃÕ(])/)[0].replace(/\.$/,"");
+  if(s.length>120) s = s.slice(0,117)+"...";
+  return it.m.split(":")[0] + ": " + s;
+}
+const REVIEWS = (()=>{
+  const out = [];
+  W.forEach(w => w.days.forEach((day,di) => day.items.forEach((it,ii) => {
+    if(RV_SKIP.has(it.m) || /^SIMULADO/.test(it.m)) return;
+    RV_INT.forEach((n,k) => {
+      const date = addDays(day.d, n);
+      if(date > RV_LAST) return;
+      out.push({date, n:k+1, c:it.c, label:topicLabel(it), from:day.d, key:date+"|"+w.n+"."+di+"."+ii+"|"+(k+1)});
+    });
+  })));
+  return out.sort((a,b) => a.date.localeCompare(b.date) || a.n-b.n);
+})();
+const rvVisible = r => cargo==="both" || r.c==="both" || r.c===cargo;
+const rvOn = date => REVIEWS.filter(r => r.date===date && rvVisible(r));
+function rvRow(r){
+  return '<div class="rvrow'+(rvDone[r.key]?' done':'')+'" data-rv="'+r.key+'"><div class="chk">'+ic("check")+'</div><span class="rvn">R'+r.n+'</span><span class="rvt">'+esc(r.label)+'<span class="rvd">estudado em '+shortDate(r.from)+'</span></span></div>';
+}
+
+/* ---------- home ---------- */
+function weekState(w){
+  const days = visDays(w); const today = todayISO();
+  const undone = days.filter(d => !done[d.d]).length;
+  const hasToday = days.some(d => d.d === today);
+  return {days, undone, hasToday};
+}
+function renderHome(){
+  $("#weeksGrid").innerHTML = W.map(w => {
+    const s = weekState(w);
+    const complete = s.days.length>0 && s.undone===0;
+    const badge = complete ? '<span class="badge ok">'+ic("check")+'</span>' : '';
+    const first = s.days[0] ? parse(s.days[0].d) : null;
+    const sub = first ? first.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}).replace(".","") : "";
+    return '<button class="tile'+(s.hasToday?' now':'')+(complete?' complete':'')+'" data-week="'+w.n+'"><div class="icon week"><span class="num">'+w.n+'</span>'+badge+'</div><div class="label">Semana '+w.n+'</div><div class="sub">'+sub+'</div></button>';
+  }).join("");
+
+  const qCountBadge = qBank.length ? '<span class="badge ok">'+qBank.length+'</span>' : '';
+  const apps = [
+    {id:"questoes", n:"App Questões", ic:"list-checks", g:"g-purple", badge: qCountBadge},
+    {id:"revisao", n:"Revisão espaçada", ic:"repeat", g:"g-indigo"},
+    {id:"pesos", n:"Prova e pesos", ic:"chart", g:"g-blue"},
+    {id:"datas", n:"Datas", ic:"calendar-check", g:"g-red"},
+    {id:"metodo", n:"Método e simulados", ic:"timer", g:"g-green"},
+    {id:"dia", n:"Dia da prova", ic:"id-card", g:"g-orange"}
+  ];
+  $("#appsGrid").innerHTML = apps.map(a => '<button class="tile" data-app="'+a.id+'"><div class="icon '+a.g+'">'+ic(a.ic)+(a.badge||'')+'</div><div class="label">'+a.n+'</div></button>').join("");
+
+  const dk = [
+    {c:"134",  n: cargo==="134" ? "Mostrando só o Sanitarista (toque para ver tudo)" : "Filtrar: só Sanitarista 134 e conteúdo comum", ic:"shield-check", g:"g-orange"},
+    {c:"questoes", n:"Abrir App Questões", ic:"list-checks", g:"g-purple"},
+    {c:"hoje", n:"Ir para hoje", ic:"calendar-star", g:"g-green"}
+  ];
+  $("#dock").innerHTML = dk.map(x => '<button class="tile'+(x.c===cargo?' active':'')+'" data-dock="'+x.c+'"><span class="tip">'+x.n+'</span><div class="icon '+x.g+'">'+ic(x.ic)+'</div></button>').join("");
+
+  const total = W.reduce((a,w)=>a+visDays(w).length,0);
+  const fin = W.reduce((a,w)=>a+visDays(w).filter(d=>done[d.d]).length,0);
+  window._prog = {total, fin};
+}
+
+/* ---------- janela ---------- */
+function showWindow(title, sub, html){
+  $("#wTitle").textContent = title; $("#wSub").textContent = sub; $("#wBody").innerHTML = html;
+  $("#win").classList.add("active"); $("#wBody").scrollTop = 0; hydrate($("#wBody"));
+}
+function closeWindow(){ $("#win").classList.remove("active","full"); openWeek = null; openApp = null; }
+
+function folderHTML(w){
+  const days = visDays(w); const today = todayISO();
+  const hrs = days.reduce((a,d)=>a+hoursOf(d.h),0);
+  const fin = days.filter(d => done[d.d]).length;
+  let html = '<div class="sum"><p>'+esc(w.goal)+'</p><span class="chip">'+ic("clock")+' '+(Math.round(hrs*10)/10).toString().replace(".",",")+'h</span><span class="chip">'+ic("check-circle")+' '+fin+'/'+days.length+'</span></div>';
+  if(!days.length) return html + '<div class="empty">Nenhuma sessão desta semana para o cargo selecionado.</div>';
+  days.forEach(day => {
+    const cls = "day"+(day.d===today?" today":"")+(day.sp?" "+day.sp:"")+(done[day.d]?" done":"");
+    html += '<div class="'+cls+'"><div class="dh" data-day="'+day.d+'"><div class="chk">'+ic("check")+'</div><span class="d">'+esc(fmtDay.format(parse(day.d)))+'</span>'+(day.d===today?'<span class="hoje">HOJE</span>':'')+'<span class="hrs">'+day.h+'</span></div><div class="items">';
+    visItems(day).forEach(it => {
+      const tag = it.c==="both" ? "Comum 134 e 133" : (it.c==="134" ? "Sanitarista 134" : "Complemento 133");
+      html += '<div class="item"><div class="tags"><span class="tag c'+it.c+'">'+tag+'</span><span class="subj">'+esc(it.m)+'</span></div><p class="txt">'+esc(it.t)+'</p><div class="vids">';
+      (it.v||[]).forEach((k,i,arr) => { html += '<button class="vbtn" data-keys="'+arr.join(",")+'" data-i="'+i+'">'+ic("play-circle")+''+esc(V[k].t)+'</button>'; });
+      (it.q||[]).forEach(q => { html += '<a class="sbtn" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(q)+'">'+ic("magnifying-glass")+'Buscar: '+esc(q)+'</a>'; });
+      html += '</div></div>';
+    });
+    html += '</div>';
+    html += '</div>';
+  });
+  return html;
+}
+function openFolder(n){
+  const w = W.find(x => x.n===n); openWeek = n; openApp = null;
+  const days = visDays(w);
+  const first = days[0] ? parse(days[0].d) : null, last = days[days.length-1] ? parse(days[days.length-1].d) : null;
+  const f = d => d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+  const sub = (first ? f(first)+" a "+f(last)+" · " : "") + (cargo==="both" ? "134 e 133" : "cargo "+cargo);
+  showWindow("Semana "+n+" · "+w.name.replace(/^Semana \d+:\s*/,""), sub, folderHTML(w));
+}
+function refreshWindow(){
+  if(openWeek!==null){ refreshFolder(); return; }
+  if(openApp && APPS[openApp]){
+    const st = $("#wBody").scrollTop;
+    const r = APPS[openApp]();
+    $("#wTitle").textContent = r[0];
+    $("#wSub").textContent = r[1];
+    $("#wBody").innerHTML = r[2];
+    $("#wBody").scrollTop = st;
+    hydrate($("#wBody"));
+  }
+}
+function refreshFolder(){
+  if(openWeek===null) return;
+  const w = W.find(x => x.n===openWeek), st = $("#wBody").scrollTop;
+  $("#wBody").innerHTML = folderHTML(w); $("#wBody").scrollTop = st; hydrate($("#wBody"));
+}
+
+/* ---------- Construção do App Questões ---------- */
+function buildQuestoesHTML(){
+  const wNum = Number(qFilter.week);
+  const wObj = W.find(x => x.n === wNum) || W[0];
+  const subjects = getWeekSubjects(wNum);
+
+  // Garante que a matéria selecionada exista na semana atual
+  if(qFilter.subj !== "ALL" && !subjects.some(s => s.name === qFilter.subj)){
+    qFilter.subj = "ALL";
+  }
+
+  // 1. Barra de ações para JSON
+  let h = '<div class="q-toolbar">';
+  h += '<div class="q-toolbar-left">';
+  h += '<span class="chip">'+ic("list-checks")+' '+qBank.length+' questões no banco</span>';
+  h += '</div>';
+  h += '<div class="q-toolbar-right">';
+  h += '<button class="btn sm primary" id="btnImportJson">'+ic("upload")+' Importar .json</button>';
+  h += '<button class="btn sm" id="btnFetchJson">'+ic("repeat")+' Ler questoes.json</button>';
+  h += '<button class="btn sm" id="btnDownloadTpl">'+ic("download")+' Modelo .json</button>';
+  h += '</div></div>';
+
+  // 2. Combobox de Semana e Combobox de Matéria
+  h += '<div class="q-controls">';
+  h += '<div class="q-field"><label for="qWeekSel">1. Selecione a Semana</label><select class="q-select" id="qWeekSel">';
+  W.forEach(w => {
+    const first = w.days[0] ? shortDate(w.days[0].d) : "";
+    const last  = w.days[w.days.length-1] ? shortDate(w.days[w.days.length-1].d) : "";
+    h += '<option value="'+w.n+'"'+(w.n===wNum?' selected':'')+'>'+esc(w.name)+' ('+first+' a '+last+')</option>';
+  });
+  h += '</select></div>';
+
+  h += '<div class="q-field"><label for="qSubjSel">2. Escolha a Matéria da Semana</label><select class="q-select" id="qSubjSel">';
+  const totalSyllabusItems = subjects.reduce((a,s)=>a+s.items.length, 0);
+  h += '<option value="ALL"'+(qFilter.subj==="ALL"?' selected':'')+'>Todas as matérias da Semana '+wNum+' ('+totalSyllabusItems+' tópicos)</option>';
+  subjects.forEach(s => {
+    const qCnt = qBank.filter(q => Number(q.semana)===wNum && normalizeSubject(q.materia)===s.name).length;
+    const suffix = qCnt ? ' · '+qCnt+' quest'+(qCnt===1?'ão':'ões') : '';
+    h += '<option value="'+esc(s.name)+'"'+(qFilter.subj===s.name?' selected':'')+'>'+esc(s.name)+' ('+s.items.length+' aula'+(s.items.length===1?'':'s')+suffix+')</option>';
+  });
+  h += '</select></div>';
+  h += '</div>';
+
+  // 3. Pílulas de acesso rápido para a matéria abaixo das comboboxes
+  if(subjects.length){
+    h += '<div class="q-pills">';
+    h += '<button class="q-pill'+(qFilter.subj==="ALL"?' active':'')+'" data-qsubj="ALL">Todas <small>('+totalSyllabusItems+')</small></button>';
+    subjects.forEach(s => {
+      h += '<button class="q-pill'+(qFilter.subj===s.name?' active':'')+'" data-qsubj="'+esc(s.name)+'">'+esc(s.name)+' <small>('+s.items.length+')</small></button>';
+    });
+    h += '</div>';
+  }
+
+  // 4. Painel com o Conteúdo Programático Imediato da Semana + Matéria escolhida
+  const activeSubjects = qFilter.subj === "ALL" ? subjects : subjects.filter(s => s.name === qFilter.subj);
+  h += '<div class="q-syllabus">';
+  h += '<h4>'+ic("book-open")+' Conteúdo da '+esc(wObj.name)+(qFilter.subj!=="ALL" ? ' · '+esc(qFilter.subj) : '')+'</h4>';
+  const flatTopics = [];
+  activeSubjects.forEach(s => s.items.forEach(it => flatTopics.push({ subj: s.name, ...it })));
+  if(!flatTopics.length){
+    h += '<div class="q-syl-item">Nenhum tópico teórico listado para este filtro nesta semana.</div>';
+  } else {
+    flatTopics.forEach(tp => {
+      const tag = tp.cargo==="both" ? "Comum 134/133" : (tp.cargo==="134" ? "Sanitarista 134" : "Complemento 133");
+      h += '<div class="q-syl-item">';
+      h += '<div class="q-syl-meta"><span class="tag c'+tp.cargo+'">'+tag+'</span><span class="subj">'+esc(tp.rawSubj)+'</span><span class="q-syl-date">'+shortDate(tp.date)+'</span></div>';
+      h += '<div>'+esc(tp.text)+'</div>';
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+
+  // 5. Listagem das Questões filtradas do JSON para a Semana e Matéria
+  const filteredQs = qBank.filter(q => {
+    const matchWeek = Number(q.semana) === wNum;
+    const matchSubj = qFilter.subj === "ALL" || normalizeSubject(q.materia||"") === qFilter.subj;
+    const matchCargo = cargo === "both" || !q.cargo || q.cargo === "both" || q.cargo === cargo;
+    return matchWeek && matchSubj && matchCargo;
+  });
+
+  if(!filteredQs.length){
+    h += '<div class="q-empty-box">';
+    h += '<b>Nenhuma questão carregada para '+(qFilter.subj==="ALL" ? 'a Semana '+wNum : esc(qFilter.subj)+' na Semana '+wNum)+'</b>';
+    h += 'Quando quiser anexar as questões da semana, basta subir o arquivo <code>questoes.json</code> na mesma pasta da hospedagem (ou clicar em <b>Importar .json</b> acima).';
+    h += '<pre class="q-code">[\n  {\n    "id": "s'+wNum+'_q1",\n    "semana": '+wNum+',\n    "materia": "'+(qFilter.subj==="ALL" ? (subjects[0]?subjects[0].name:"SUS") : qFilter.subj)+'",\n    "cargo": "both",\n    "enunciado": "Texto da questão...",\n    "alternativas": ["A) ...", "B) ...", "C) ...", "D) ..."],\n    "correta": 0,\n    "comentario": "Gabarito comentado..."\n  }\n]</pre>';
+    h += '</div>';
+  } else {
+    filteredQs.forEach((q, idx) => {
+      const qid = q.id || ("w"+wNum+"_"+idx);
+      const ans = qAns[qid];
+      const hasAnswered = ans !== undefined;
+      const tagCargo = (!q.cargo || q.cargo==="both") ? "Comum 134 e 133" : (q.cargo==="134" ? "Sanitarista 134" : "Complemento 133");
+      h += '<div class="q-card">';
+      h += '<div class="q-card-head"><div class="tags" style="margin:0"><span class="tag c'+(q.cargo||"both")+'">'+tagCargo+'</span><span class="subj">'+esc(q.materia||"Questão")+'</span></div><span class="chip">#'+(idx+1)+'</span></div>';
+      h += '<div class="q-enun">'+esc(q.enunciado||"")+'</div>';
+      h += '<div class="q-opts">';
+      (q.alternativas||[]).forEach((alt, ai) => {
+        const letChar = String.fromCharCode(65 + ai);
+        const cleanAlt = String(alt).replace(/^[A-E]\)\s*/i, "");
+        let cls = "q-opt";
+        if(hasAnswered){
+          if(ai === Number(q.correta)) cls += " correct";
+          else if(ai === Number(ans)) cls += " wrong";
+        }
+        h += '<button class="'+cls+'" data-qid="'+esc(qid)+'" data-opt="'+ai+'"><span class="let">'+letChar+'</span><span>'+esc(cleanAlt)+'</span></button>';
+      });
+      h += '</div>';
+      if(q.comentario){
+        h += '<div class="q-comm'+(hasAnswered?' show':'')+'"><b>Comentário:</b> '+esc(q.comentario)+'</div>';
+      }
+      h += '</div>';
+    });
+  }
+
+  return ["App Questões", "Semana "+wNum+" · "+(qFilter.subj==="ALL"?"Todas as matérias":qFilter.subj), h];
+}
+
+const APPS = {
+  questoes(){
+    return buildQuestoesHTML();
+  },
+  revisao(){
+    const today = todayISO(), vis = REVIEWS.filter(rvVisible);
+    const late = vis.filter(r => r.date<today && !rvDone[r.key]), now = vis.filter(r => r.date===today);
+    const doneN = vis.filter(r => rvDone[r.key]).length;
+    const dates = [...new Set(vis.map(r => r.date))];
+    const perDay = vis.length / Math.max(1,dates.length);
+    let h = '<div class="box"><h3>Como funciona</h3><ul><li>Cada tópico novo volta <b>3 vezes</b>: <b>R1</b> um dia depois, <b>R2</b> sete dias depois e <b>R3</b> vinte e um dias depois. Não há revisão marcada depois de 04/12 (05/12 é descanso e 06/12 é a prova).</li><li>Cada revisão dura <b>10 minutos</b>: feche o material, escreva ou diga em voz alta tudo o que lembra do tópico, confira no resumo e resolva 3 questões. Se errar 2 ou mais, o tópico volta ao caderno de erros e ganha uma revisão extra no domingo.</li><li>Faça as revisões do dia <b>no início da sessão</b>, antes do conteúdo novo. Em média são '+(Math.round(perDay*10)/10).toString().replace(".",",")+' revisões por dia, cerca de '+Math.round(perDay*10)+' minutos. Tire esse tempo do bloco de questões da sessão.</li><li>As revisões ficam só aqui, separadas do cronograma das semanas.</li></ul></div>';
+    h += '<div class="sum"><span class="chip">'+doneN+' de '+vis.length+' feitas</span><span class="chip">'+late.length+' atrasadas</span><span class="chip">'+now.length+' para hoje</span></div>';
+    if(late.length) h += '<div class="rvgroup late"><h4>Atrasadas <small>faça primeiro</small></h4><div class="rvbox">'+late.map(rvRow).join("")+'</div></div>';
+    dates.forEach(d => {
+      if(d < today) return;
+      const rs = vis.filter(r => r.date===d);
+      h += '<div class="rvgroup'+(d===today?' now':'')+'"><h4>'+esc(fmtDay.format(parse(d)))+(d===today?' · hoje':'')+' <small>'+rs.length+(rs.length===1?' revisão':' revisões')+'</small></h4><div class="rvbox">'+rs.map(rvRow).join("")+'</div></div>';
+    });
+    return ["Revisão espaçada","R1 em 1 dia, R2 em 7 dias, R3 em 21 dias",h];
+  },
+  pesos(){ return ["Prova e pesos","Iguais nos dois cargos",
+   '<div class="box"><h3>Estrutura da prova objetiva</h3><table><tr><th>Matéria</th><th>Questões</th><th>Peso</th><th>Pontos</th></tr><tr><td>Políticas Públicas de Saúde (SUS)</td><td>10</td><td>3</td><td>30</td></tr><tr><td>Conhecimentos Específicos</td><td>10</td><td>4</td><td>40</td></tr><tr><td>Língua Portuguesa</td><td>10</td><td>2</td><td>20</td></tr><tr><td>Matemática</td><td>5</td><td>1</td><td>5</td></tr><tr><td>Noções de Informática</td><td>5</td><td>1</td><td>5</td></tr></table></div>'+
+   '<div class="box"><h3>Como o plano está organizado</h3>40 questões, 4 alternativas e 3h30 de duração. Habilita quem fizer pelo menos 50% dos pontos.<br><br><b>Requisito do 134:</b> o cargo exige especialização, mestrado ou doutorado em saúde pública, saúde coletiva, epidemiologia ou áreas correlatas. Confirme no edital se ela atende antes de pagar. O 133 (Bloco A) e o 134 (Bloco B) permitem inscrição nos dois, a R$ 97,00 cada.<br><br><b>Prioridade: Sanitarista (134).</b> Tudo o que os dois cargos têm em comum (zoonoses, raiva, leptospirose, leishmanioses, biossegurança, inspeção de produtos de origem animal, ética) e toda a trilha de vigilância ficam nas semanas 1 a 4.<br><br><b>Complemento do cargo 133:</b> o que só o Clínico cobra (semiologia, doenças de cães e gatos, vacinas e parasitas, cirurgia, farmacologia, exames laboratoriais, documentos) fica separado nas semanas 4 e 5, cerca de 7 das 104 horas do plano. Pelo edital, o conteúdo em comum é bem menor que 80% do programa de cada cargo, por isso o complemento 133 é um bloco próprio e não só uma revisão.</div>']; },
+  datas(){ return ["Datas","Prazos que não podem passar",
+   '<div class="box"><ul><li><b>29/10, 23h59:</b> fim da inscrição e do pagamento por cartão. Boleto ou PIX valem até 30/10, mas o PIX leva até 48 horas para confirmar. Pague até 29/10.</li><li><b>27/11:</b> edital de convocação, com local e horário da prova de cada cargo.</li><li><b>06/12 (domingo):</b> prova objetiva.</li><li><b>08/12:</b> gabarito. Recursos em 09 e 10/12, até 18h do último dia, um formulário por questão (máximo de 2.500 caracteres).</li><li><b>08/01 e 05/02/2027:</b> notas e classificação final (datas estimadas no Anexo III).</li></ul></div>']; },
+  metodo(){ return ["Método e simulados","Como cada sessão funciona",
+   '<div class="box"><h3>Sessão de 2 horas</h3><ul><li>70 minutos de teoria ativa (resumo, videoaula ou leitura da lei) e 50 minutos de questões do mesmo tema, no mesmo dia.</li><li>Pausa de 10 minutos a cada 50 minutos de estudo, sem celular.</li><li>Toda questão errada vai para o caderno de erros, com o motivo (não sabia, confundi, desatenção) e a resposta certa em uma frase.</li><li>Um tópico só é dado como fechado com 80% de acerto em pelo menos 10 questões. Abaixo de 70%, ele volta na revisão de domingo.</li><li>Priorize questões da banca IBAM. Estude as leis pelo texto, não só por resumo.</li></ul></div>'+
+   '<div class="box"><h3>Metas dos simulados</h3><table><tr><th>Simulado</th><th>Data</th><th>Meta</th></tr><tr><td>1</td><td>08/11</td><td>28 de 40 (70%)</td></tr><tr><td>2</td><td>22/11</td><td>30 de 40 (75%)</td></tr><tr><td>3</td><td>29/11</td><td>32 de 40 (80%)</td></tr></table><p style="margin-top:8px">O corte oficial é 50%, mas a classificação é por nota final, por isso a meta é bem acima do mínimo. Nos simulados 1 e 2 as 10 questões de Específicos são da trilha do Sanitarista (134). No simulado 3, da trilha do cargo 133.</p></div>']; },
+  dia(){ return ["Dia da prova","06/12/2026",
+   '<div class="box"><h3>Checklist</h3><ul><li>Documento de identidade original com foto, em bom estado e dentro da validade (a CNH vale mesmo vencida). Serve a carteira do CRMV. Versão digital só para CNH, RG e CIN pelo aplicativo oficial.</li><li>Pelo menos duas canetas esferográficas de tinta preta ou azul. Questão com mais de uma marca ou rasura não conta.</li><li>Chegar com pelo menos 30 minutos de antecedência. Após o fechamento dos portões, a eliminação é automática.</li><li>Celular e smartwatch desligados. Calculadora e qualquer aparelho eletrônico eliminam o candidato, mesmo no envelope lacrado.</li><li>Saída só depois de 1h45 e sem levar o caderno. O caderno só pode ser levado nos últimos 30 minutos.</li><li>Boné, gorro, óculos escuros e acessórios que cubram cabeça, olhos, orelhas ou pescoço exigem justificativa médica.</li><li>Reservar 20 minutos para passar tudo para a folha de respostas.</li></ul></div>']; },
+  req(){ return ["Requisito do cargo 134","Confira antes de pagar",
+   '<div class="box warn"><h3>Atenção</h3>O Médico Veterinário Sanitarista (134) exige especialização, mestrado ou doutorado em saúde pública, saúde coletiva, epidemiologia ou áreas correlatas, além da graduação. Confirme no edital se ela atende antes de pagar a inscrição.</div><div class="box">O 133 (Bloco A) e o 134 (Bloco B) pertencem a blocos diferentes, por isso é permitido se inscrever nos dois. A taxa é de R$ 97,00 por cargo.</div>']; }
+};
+function openApp_(id){
+  openApp = id; openWeek = null;
+  if(id === "questoes"){
+    // Seleciona por padrão a semana correspondente à data de hoje, se aplicável
+    const today = todayISO();
+    const curW = W.find(w => w.days.some(d => d.d === today));
+    if(curW && qFilter.week === undefined) qFilter.week = curW.n;
+  }
+  const [t,s,h] = APPS[id]();
+  showWindow(t,s,h);
+}
+
+/* ---------- popup de vídeo ---------- */
+let player = null, vState = {keys:[],i:0}, vTimer = null;
+const canEmbed = /^https?:$/.test(location.protocol);
+
+function loadYT(){
+  if(window.YT && YT.Player) return Promise.resolve(true);
+  if(loadYT._p) return loadYT._p;
+  loadYT._p = new Promise(res => {
+    const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api";
+    window.onYouTubeIframeAPIReady = () => res(true);
+    s.onerror = () => res(false); document.head.appendChild(s);
+    setTimeout(() => res(!!(window.YT && YT.Player)), 7000);
+  });
+  return loadYT._p;
+}
+function destroyPlayer(){
+  clearTimeout(vTimer);
+  try{ if(player && player.destroy) player.destroy(); }catch(e){}
+  player = null;
+  const wrap = $(".vframe"), old = $("#ytp"); if(old) old.remove();
+  const n = document.createElement("div"); n.id = "ytp"; wrap.insertBefore(n, wrap.firstChild);
+}
+function showFallback(v, reason){
+  clearTimeout(vTimer);
+  try{ if(player && player.destroy) player.destroy(); }catch(e){} player = null;
+  const ytp = $("#ytp"); if(ytp) ytp.style.display = "none";
+  const fb = $("#fb"); fb.style.display = "flex";
+  fb.style.backgroundImage = v.id ? 'url("https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg")' : "linear-gradient(135deg,#2C2C2E,#1C1C1E)";
+  $("#fbMsg").textContent = reason;
+  $("#fbTab").href = watchUrl(v);
+}
+function openPopupWindow(v){
+  const w = 1040, h = 640, l = Math.max(0,(screen.width-w)/2), t = Math.max(0,(screen.height-h)/2);
+  const win = window.open(watchUrl(v), "ytpopup", "popup=yes,width="+w+",height="+h+",left="+l+",top="+t+",resizable=yes,scrollbars=yes");
+  if(!win){ toast("Popup bloqueado pelo navegador, abrindo em nova aba", "warning"); window.open(watchUrl(v), "_blank", "noopener"); }
+  else { try{ win.focus(); }catch(e){} }
+}
+async function playVideo(v){
+  destroyPlayer();
+  $("#fb").style.display = "none";
+  $("#fbTab").href = watchUrl(v);
+  if(!canEmbed){
+    showFallback(v, "Este arquivo está aberto direto do computador (file://). Nesse modo o YouTube bloqueia o player embutido (erro 153). Use a janela popup abaixo, ou abra o arquivo por um endereço http (ver dica no rodapé) para assistir aqui dentro.");
+    return;
+  }
+  const ok = await loadYT();
+  if(!ok){ showFallback(v, "Não foi possível carregar o player do YouTube (sem internet ou bloqueado). Use a janela popup abaixo."); return; }
+  if(v !== vState.cur) return;
+  let ready = false;
+  const cfg = {
+    host: "https://www.youtube-nocookie.com", width:"100%", height:"100%",
+    playerVars: {rel:0, playsinline:1, autoplay:1, origin: location.origin},
+    events: {
+      onReady: () => { ready = true; clearTimeout(vTimer); },
+      onError: e => {
+        const c = e && e.data;
+        const msg = (c===101 || c===150) ? "O autor deste vídeo não permite a reprodução fora do YouTube. Use a janela popup abaixo."
+                  : (c===153) ? "O YouTube recusou o player embutido (erro 153, falta de referência da página). Use a janela popup abaixo."
+                  : (c===100) ? "Este vídeo foi removido ou está privado. Use o botão de busca do item para achar outro."
+                  : "O player não conseguiu reproduzir este vídeo (erro "+c+"). Use a janela popup abaixo.";
+        showFallback(v, msg);
+      }
+    }
+  };
+  if(v.pl){ cfg.playerVars.listType = "playlist"; cfg.playerVars.list = v.pl; } else { cfg.videoId = v.id; }
+  try{ player = new YT.Player("ytp", cfg); }catch(e){ showFallback(v, "Falha ao iniciar o player. Use a janela popup abaixo."); return; }
+  vTimer = setTimeout(() => { if(!ready) showFallback(v, "O player demorou demais para responder. Use a janela popup abaixo."); }, 9000);
+}
+function openVideo(keys, i){
+  const v = V[keys[i]]; vState = {keys, i, cur:v};
+  $("#vTitle").textContent = v.t;
+  $("#vList").innerHTML = keys.length>1 ? keys.map((k,j) => '<button class="vbtn'+(j===i?' cur':'')+'" data-keys="'+keys.join(",")+'" data-i="'+j+'">'+ic("play-circle")+''+esc(V[k].t)+'</button>').join("") : "";
+  $("#vList").style.display = keys.length>1 ? "flex" : "none";
+  $("#vFoot").innerHTML = canEmbed ? "Se o vídeo não carregar aqui dentro, aparece automaticamente o botão para assistir em janela popup." :
+    "Dica: para assistir dentro da página, abra este arquivo por um endereço http. No computador, abra o terminal na pasta do arquivo e rode <b>python -m http.server 8000</b>, depois acesse <b>http://localhost:8000</b>.";
+  $("#vOverlay").classList.add("active");
+  playVideo(v);
+}
+function closeVideo(){
+  if(!$("#vOverlay").classList.contains("active")) return;
+  $("#vOverlay").classList.remove("active");
+  destroyPlayer(); $("#fb").style.display = "none"; vState.cur = null;
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener("change", e => {
+  const t = e.target;
+  if(t.id === "qWeekSel"){
+    qFilter.week = Number(t.value);
+    qFilter.subj = "ALL";
+    refreshWindow();
+    return;
+  }
+  if(t.id === "qSubjSel"){
+    qFilter.subj = t.value;
+    refreshWindow();
+    return;
+  }
+  if(t.id === "qFileInput"){
+    const file = t.files && t.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        const list = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.questoes) ? parsed.questoes : null);
+        if(!list) throw new Error("Formato inválido");
+        qBank = list;
+        store.set("matao_qbank", qBank);
+        renderHome();
+        refreshWindow();
+        toast(qBank.length + " questões importadas com sucesso!");
+      }catch(err){
+        toast("Erro ao ler o arquivo .json. Verifique a formatação.", "warning");
+      }
+      t.value = "";
+    };
+    reader.readAsText(file);
+    return;
+  }
+});
+
+document.addEventListener("click", e => {
+  const t = e.target;
+  const wk = t.closest("[data-week]"); if(wk){ openFolder(Number(wk.dataset.week)); return; }
+  const ap = t.closest("[data-app]"); if(ap){ openApp_(ap.dataset.app); return; }
+  const dk = t.closest("[data-dock]");
+  if(dk){
+    const c = dk.dataset.dock;
+    if(c === "hoje"){
+      const today = todayISO(); let n = W.find(w => w.days.some(d => d.d===today));
+      if(!n){ n = todayISO() < W[0].days[0].d ? W[0] : W[W.length-1]; toast("Hoje está fora do período do plano", "info"); }
+      openFolder(n.n);
+    } else if(c === "questoes"){
+      openApp_("questoes");
+    } else {
+      cargo = (cargo===c) ? "both" : c; store.set("matao_cargo", cargo); renderHome();
+      if(openWeek!==null) openFolder(openWeek);
+      if(openApp==="questoes") refreshWindow();
+      toast(cargo==="134" ? "Mostrando o Sanitarista (134) e o conteúdo comum" : "Mostrando todo o conteúdo", "funnel");
+    }
+    return;
+  }
+  // Eventos internos do App Questões
+  const qp = t.closest("[data-qsubj]");
+  if(qp){ qFilter.subj = qp.dataset.qsubj; refreshWindow(); return; }
+  if(t.closest("#btnImportJson")){ $("#qFileInput").click(); return; }
+  if(t.closest("#btnFetchJson")){ autoFetchQuestionsJson(false); return; }
+  if(t.closest("#btnDownloadTpl")){ downloadTemplateJson(); return; }
+  const qOpt = t.closest(".q-opt[data-qid]");
+  if(qOpt){
+    const qid = qOpt.dataset.qid;
+    const optIdx = Number(qOpt.dataset.opt);
+    qAns[qid] = optIdx;
+    store.set("matao_qans", qAns);
+    refreshWindow();
+    return;
+  }
+
+  const vb = t.closest(".vbtn[data-keys]"); if(vb){ openVideo(vb.dataset.keys.split(","), Number(vb.dataset.i)); return; }
+  const rr = t.closest("[data-rv]");
+  if(rr){ const k = rr.dataset.rv; if(rvDone[k]) delete rvDone[k]; else rvDone[k] = true; store.set("matao_rv", rvDone); renderHome(); refreshWindow(); return; }
+  const dh = t.closest(".dh[data-day]");
+  if(dh){ const d = dh.dataset.day; if(done[d]) delete done[d]; else done[d] = true; store.set("matao_done", done); renderHome(); refreshFolder(); return; }
+  if(t.id==="wClose" || t.closest("#wClose")){ closeWindow(); return; }
+  if(t.closest("#wExp")){ $("#win").classList.toggle("full"); return; }
+  if(t.closest("#vClose") || t.id==="vOverlay"){ closeVideo(); return; }
+  if(t.closest("#fbPlay") || t.closest("#fbPop")){ if(vState.cur) openPopupWindow(vState.cur); return; }
+  if(t.closest("#fbCopy")){
+    const url = vState.cur ? watchUrl(vState.cur) : "";
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast("Link copiado")).catch(() => { prompt("Copie o link:", url); });
+    return;
+  }
+});
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if($("#alertOv").classList.contains("active")) closeAlert(false); else if($("#vOverlay").classList.contains("active")) closeVideo(); else closeWindow();
+});
+
+function tick(){
+  const n = new Date();
+  $("#clock").textContent = n.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const t0 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  $("#dProva").textContent = Math.max(0, Math.round((parse("2026-12-06") - t0)/86400000));
+}
+function rvCounts(){
+  const today = todayISO(), vis = REVIEWS.filter(r => r.date<=today && !rvDone[r.key]);
+  return {late: vis.filter(r => r.date<today).length, now: vis.filter(r => r.date===today).length};
+}
+function maybeAlert(){
+  const today = todayISO();
+  if(today > "2026-12-06") return;
+  const c = rvCounts(), n = c.late + c.now;
+  if(!n) return;
+  if(store.get("matao_alert","") === today + ":" + n) return;       // já avisou hoje com esse mesmo número
+  $("#alertTitle").textContent = "Revisão espaçada de hoje";
+  $("#alertMsg").textContent = "Faça primeiro a revisão antes de estudar hoje. Você tem " + n + (n===1 ? " revisão pendente" : " revisões pendentes") + (c.late ? " (" + c.late + (c.late===1 ? " atrasada" : " atrasadas") + ")" : "") + ", cerca de " + (n*10) + " minutos.";
+  $("#alertOv").classList.add("active");
+}
+function closeAlert(go){
+  const c = rvCounts(); store.set("matao_alert", todayISO() + ":" + (c.late + c.now));
+  $("#alertOv").classList.remove("active");
+  if(go) openApp_("revisao");
+}
+$("#alertLater").addEventListener("click", () => closeAlert(false));
+$("#alertGo").addEventListener("click", () => closeAlert(true));
+tick(); setInterval(tick, 30000);
+renderHome(); hydrate();
+autoFetchQuestionsJson(true);
+setTimeout(maybeAlert, 500);
+</script>
+</body>
+</html>
